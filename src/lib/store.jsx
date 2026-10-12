@@ -95,7 +95,7 @@ export function AppProvider({ inicial, children }) {
         const estado = comprobante || !requiere ? 'avisada' : 'pendiente_comprobante'
         d.ausencias.push({
           id, empleadoId, tiendaId: emp.tiendaId, regionId: emp.regionId, tipo, desde, hasta, turnoIds: filas.map((f) => f.id), estado, avisadoEn: ahoraSim(), motivo,
-          prolongada: false, comprobante: comprobante ? { archivo: comprobante.archivo, etiqueta: comprobante.etiqueta || 'Comprobante', imagen: comprobante.imagen || '/img/comprobante-placeholder.svg', subidoEn: ahoraSim() } : null,
+          prolongada: false, comprobante: comprobante ? { archivo: comprobante.archivo, etiqueta: comprobante.etiqueta || 'Comprobante', imagen: comprobante.imagen || 'img/comprobante-placeholder.svg', subidoEn: ahoraSim() } : null,
           comentarioCoordinadora: null, resueltaPor: null, resueltaEn: null, licenciaId: null,
         })
         filas.forEach((f) => { f.estado = 'ausente'; f.ausenciaId = id })
@@ -109,7 +109,7 @@ export function AppProvider({ inicial, children }) {
       return nuevoId
     }
 
-    A.subirComprobante = (ausId, archivo, imagen = '/img/comprobante-medico.svg') => {
+    A.subirComprobante = (ausId, archivo, imagen = 'img/comprobante-medico.svg') => {
       mutar((d) => {
         const a = d.ausencias.find((x) => x.id === ausId)
         a.comprobante = { archivo, etiqueta: 'Comprobante', imagen, subidoEn: ahoraSim() }

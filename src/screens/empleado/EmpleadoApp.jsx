@@ -114,7 +114,7 @@ export function SubirComprobante({ onArchivo, archivo }) {
         <input type="file" accept="image/*,application/pdf" className="sr-only" onChange={(e) => e.target.files[0] && onArchivo(e.target.files[0].name)} />
       </label>
       {!archivo && <button type="button" onClick={() => onArchivo('certificado_medico_ejemplo.jpg')} className="w-full text-center text-xs font-semibold text-slate-500 underline">Usar una foto de ejemplo (demo)</button>}
-      {archivo && <img src="/img/comprobante-medico.svg" alt="Vista previa del comprobante" className="mx-auto h-40 rounded-xl ring-1 ring-slate-200" />}
+      {archivo && <img src="img/comprobante-medico.svg" alt="Vista previa del comprobante" className="mx-auto h-40 rounded-xl ring-1 ring-slate-200" />}
     </div>
   )
 }
@@ -150,7 +150,7 @@ function Avisar() {
   const requiere = TIPOS_AVISO.find((t) => t[0] === tipo)[3]
   const etiquetaTipo = TIPOS_AVISO.find((t) => t[0] === tipo)[1]
   const enviar = () => {
-    const id = acciones.avisarAusencia({ empleadoId: emp.id, tipo, desde, hasta: fin, motivo: motivo || etiquetaTipo, comprobante: archivo ? { archivo, imagen: '/img/comprobante-medico.svg', etiqueta: 'Comprobante' } : null })
+    const id = acciones.avisarAusencia({ empleadoId: emp.id, tipo, desde, hasta: fin, motivo: motivo || etiquetaTipo, comprobante: archivo ? { archivo, imagen: 'img/comprobante-medico.svg', etiqueta: 'Comprobante' } : null })
     setResultado(id)
   }
   if (resultado) {

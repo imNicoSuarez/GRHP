@@ -261,7 +261,7 @@ let nAus = 0, nCob = 0, nCov = 0
 const ocupado = new Set() // suplente|fecha
 const TIPOS_AUS = ['enfermedad', 'falta_sin_aviso', 'tramite_personal', 'duelo', 'estudio', 'familiar_enfermo', 'licencia']
 const NEEDS_COMP = { enfermedad: ['certificado_medico', 'Certificado médico'], duelo: ['partida_defuncion', 'Partida de defunción'], estudio: ['constancia_estudio', 'Constancia de estudio'], familiar_enfermo: ['certificado_familiar', 'Certificado médico de familiar'], tramite_personal: ['constancia_tramite', 'Constancia del trámite'] }
-const IMG = { certificado_medico: '/img/comprobante-medico.svg', partida_defuncion: '/img/comprobante-constancia.svg', constancia_estudio: '/img/comprobante-constancia.svg', certificado_familiar: '/img/comprobante-medico.svg', constancia_tramite: '/img/comprobante-constancia.svg' }
+const IMG = { certificado_medico: 'img/comprobante-medico.svg', partida_defuncion: 'img/comprobante-constancia.svg', constancia_estudio: 'img/comprobante-constancia.svg', certificado_familiar: 'img/comprobante-medico.svg', constancia_tramite: 'img/comprobante-constancia.svg' }
 const MOTIVOS = {
   enfermedad: ['Cuadro gripal con fiebre', 'Gastroenteritis', 'Dolor de espalda, consulta con traumatólogo', 'Migraña', 'Control médico programado', 'Infección de garganta'],
   falta_sin_aviso: ['No se presentó al turno ni avisó', 'Sin aviso, no atiende el teléfono'],
