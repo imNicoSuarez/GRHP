@@ -95,7 +95,7 @@ function Panel({ regionId }) {
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {sems.map(({ t, s }) => (
             <Link key={t.id} to={`/tienda/${t.id}`} className={cx('block rounded-2xl border-l-4 bg-white p-4 ring-1 ring-slate-200 hover:ring-brand-600', s.nivel === 'rojo' ? 'border-l-red-500' : s.nivel === 'amarillo' ? 'border-l-amber-500' : 'border-l-emerald-500')}>
-              <div className="flex items-start justify-between gap-2"><div><div className="font-bold">{t.nombre.replace('Pagnific ', '')}</div><div className="text-xs text-slate-500">{t.departamento} · {t.dotacionPorTurno} por turno</div></div><Semaforo nivel={s.nivel} /></div>
+              <div className="flex items-start justify-between gap-2"><div><div className="font-bold">{t.nombre.replace('Pagnifique ', '')}</div><div className="text-xs text-slate-500">{t.departamento} · {t.dotacionPorTurno} por turno</div></div><Semaforo nivel={s.nivel} /></div>
               <ul className="mt-2 min-h-[2.5rem] space-y-0.5 text-sm text-slate-600">{s.motivos.length ? s.motivos.map((x) => <li key={x}>• {x}</li>) : <li>• Dotación completa los próximos 7 días</li>}</ul>
             </Link>
           ))}
@@ -203,7 +203,7 @@ function Bandeja({ regionId }) {
           {b.he.length === 0 && <Vacio icono="✅">No hay horas extras pendientes.</Vacio>}
           {b.he.map((h) => (
             <Card as="li" key={h.id} className="flex flex-wrap items-center gap-3 p-4 text-sm">
-              <div className="min-w-0 flex-1"><b>{maps.emp[h.empleadoId].nombre}</b> · {maps.tienda[h.tiendaId].nombre.replace('Pagnific ', '')}<div className="text-slate-600">{fmt(h.fecha)} · <b>{h.horas} h</b> · {CAUSA_HE[h.causa]} · {pesos(h.horas * config.valorHoraExtra)}</div></div>
+              <div className="min-w-0 flex-1"><b>{maps.emp[h.empleadoId].nombre}</b> · {maps.tienda[h.tiendaId].nombre.replace('Pagnifique ', '')}<div className="text-slate-600">{fmt(h.fecha)} · <b>{h.horas} h</b> · {CAUSA_HE[h.causa]} · {pesos(h.horas * config.valorHoraExtra)}</div></div>
               <button onClick={() => acciones.resolverHE(h.id, true)} className="btn-ok btn-sm">Autorizar</button>
               <button onClick={() => acciones.resolverHE(h.id, false)} className="btn-secondary btn-sm">Rechazar</button>
             </Card>
@@ -320,7 +320,7 @@ function Planificador({ regionId }) {
       <Modal abierto={!!hueco} onCerrar={() => setHueco(null)} titulo={hueco ? `Cubrir hueco · ${fmtDia(hueco.d)} · ${hueco.f === 'M' ? 'mañana' : 'tarde'}` : ''}>
         {hueco && (
           <div className="space-y-3">
-            <p className="text-sm text-slate-600">Personas de {t.nombre.replace('Pagnific ', '')} sin turno ese día. Si superan el tope, se pagan horas extras. Para sumar un suplente, usá <Link to="/cobertura" className="font-semibold text-brand-700">Cobertura</Link>.</p>
+            <p className="text-sm text-slate-600">Personas de {t.nombre.replace('Pagnifique ', '')} sin turno ese día. Si superan el tope, se pagan horas extras. Para sumar un suplente, usá <Link to="/cobertura" className="font-semibold text-brand-700">Cobertura</Link>.</p>
             <ul className="space-y-2">
               {plantel.filter((e) => filas(e.id, hueco.d).filter((x) => !NO_TRABAJA.includes(x.estado)).length === 0 && !filas(e.id, hueco.d).some((x) => x.estado === 'licencia')).map((e) => { const h = horasSem(e.id) + 8; return (
                 <li key={e.id} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 text-sm"><Avatar nombre={e.nombre} color={e.avatarColor} size={32} /><div className="flex-1"><b>{e.nombre}</b><div className={h > tope ? 'font-semibold text-red-700' : 'text-slate-500'}>{horasSem(e.id)} h → {h} h {h > tope && `· +${h - tope} h extra`}</div></div><button className="btn-primary btn-sm" onClick={() => { acciones.asignarTurno({ empleadoId: e.id, tiendaId: tid, fecha: hueco.d, franja: hueco.f }); setHueco(null) }}>Asignar</button></li>) })}

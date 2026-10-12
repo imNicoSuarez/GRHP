@@ -78,7 +78,7 @@ export function TopBar() {
     <header className="sticky top-0 z-40 flex h-14 items-center gap-3 bg-slate-900 px-3 text-white sm:px-5">
       <div className="flex items-center gap-2">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 font-black">P</span>
-        <div className="hidden leading-tight sm:block"><div className="text-sm font-bold">Pagnific · RRHH y tiendas</div><div className="text-[11px] text-slate-400">Prototipo navegable · datos mock</div></div>
+        <div className="hidden leading-tight sm:block"><div className="text-sm font-bold">Pagnifique · RRHH y tiendas</div><div className="text-[11px] text-slate-400">Prototipo navegable · datos mock</div></div>
       </div>
       <span className="ml-auto hidden rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300 md:inline">Hoy: lunes 12/10/2026</span>
       <label className="flex items-center gap-2 text-sm">

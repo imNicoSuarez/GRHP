@@ -1,11 +1,11 @@
 [
-  {"id":"N001","usuarioId":"U-EMP-1","fecha":"2026-10-12T07:05:00","titulo":"Tu turno de hoy","texto":"Hoy trabajás de 09:00 a 17:00 en Pagnific Pocitos.","ruta":"/","leida":false},
+  {"id":"N001","usuarioId":"U-EMP-1","fecha":"2026-10-12T07:05:00","titulo":"Tu turno de hoy","texto":"Hoy trabajás de 09:00 a 17:00 en Pagnifique Pocitos.","ruta":"/","leida":false},
   {"id":"N002","usuarioId":"U-EMP-1","fecha":"2026-10-08T16:40:00","titulo":"Licencia en revisión","texto":"Tu solicitud de licencia anual (26/10 al 30/10) está pendiente de aprobación.","ruta":"/licencias","leida":false},
   {"id":"N003","usuarioId":"U-EMP-1","fecha":"2026-09-18T15:41:00","titulo":"Licencia rechazada","texto":"Tu licencia por estudio fue rechazada. Tocá para ver el motivo.","ruta":"/licencias","leida":true},
   {"id":"N004","usuarioId":"U-EMP-1","fecha":"2026-10-03T18:10:00","titulo":"Cambio de turno aprobado","texto":"Tu cambio de turno fue aprobado por la coordinadora.","ruta":"/turnos","leida":true},
   {"id":"N005","usuarioId":"U-EMP-2","fecha":"2026-10-09T10:00:00","titulo":"Seguimiento de tu reintegro","texto":"Recordá el control médico del 21/10. Tu ajuste de tareas continúa vigente.","ruta":"/reintegro","leida":false},
   {"id":"N006","usuarioId":"U-EMP-3","fecha":"2026-10-12T08:00:00","titulo":"Tu certificado está por vencer","texto":"Tu certificado médico vence el 14/10/2026. Subí el certificado actualizado.","ruta":"/reintegro","leida":false},
-  {"id":"N007","usuarioId":"U-SUPL-1","fecha":"2026-10-12T07:20:00","titulo":"Nueva oferta de cobertura","texto":"Pagnific Las Piedras · hoy 09:00–17:00. Respondé lo antes posible.","ruta":"/ofertas","leida":false},
+  {"id":"N007","usuarioId":"U-SUPL-1","fecha":"2026-10-12T07:20:00","titulo":"Nueva oferta de cobertura","texto":"Pagnifique Las Piedras · hoy 09:00–17:00. Respondé lo antes posible.","ruta":"/ofertas","leida":false},
   {"id":"N008","usuarioId":"U-SUPL-1","fecha":"2026-10-02T18:00:00","titulo":"Cobertura confirmada","texto":"Quedó confirmada tu cobertura del 03/10 en Ciudad de la Costa.","ruta":"/coberturas","leida":true},
   {"id":"N009","usuarioId":"U-SUPL-2","fecha":"2026-10-12T07:00:00","titulo":"Completá tu disponibilidad","texto":"Actualizá tu disponibilidad de la próxima semana para recibir más ofertas.","ruta":"/disponibilidad","leida":false}
 ]

@@ -312,7 +312,7 @@ export function EquipoPage({ regionId }) {
             {lista.map((e) => { const c = cuenta(e.id); return (
               <tr key={e.id} tabIndex={0} onKeyDown={(ev) => ev.key === 'Enter' && nav(`/equipo/${e.id}`)} onClick={() => nav(`/equipo/${e.id}`)} className="cursor-pointer hover:bg-brand-50/40 focus:bg-brand-50/60">
                 <td className="p-3"><div className="flex items-center gap-2"><Avatar nombre={e.nombre} color={e.avatarColor} size={30} /><span className="font-semibold">{e.nombre}</span></div></td>
-                <td className="p-3">{e.cargo}</td><td className="p-3">{maps.tienda[e.tiendaId].nombre.replace('Pagnific ', '')}</td><td className="p-3">{e.contrato}</td>
+                <td className="p-3">{e.cargo}</td><td className="p-3">{maps.tienda[e.tiendaId].nombre.replace('Pagnifique ', '')}</td><td className="p-3">{e.contrato}</td>
                 <td className="p-3 text-right"><Badge tono={c >= 4 ? 'bad' : c >= 2 ? 'warn' : 'ok'}>{c}</Badge></td><td className="p-3 text-right tabular-nums">{e.saldoLicenciaDias} d</td>
               </tr>) })}
           </tbody>

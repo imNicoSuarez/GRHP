@@ -1,4 +1,4 @@
-# Pagnific · RRHH y gestión de personal de tiendas (prototipo navegable)
+# Pagnifique · RRHH y gestión de personal de tiendas (prototipo navegable)
 
 Prototipo **sin backend** para validar el concepto: React + Vite + Tailwind, con todos los datos en `public/data/*.json` (se leen con `fetch`). Los cambios (avisar ausencia, validar, aceptar cobertura, aprobar licencias…) se guardan en estado local y se reflejan en **todos** los perfiles durante la sesión del navegador.
 
@@ -37,7 +37,7 @@ Datos: 1 supervisor, 5 coordinadoras, 30 tiendas (los 19 departamentos), 125 emp
    Luego **Lucía Ferreira** (Coordinadora Metropolitana) → “Bandeja” → tab Ausencias → ver el comprobante → “Validar”. Volvé a Camila → Legajo: figura como validada. Además se generó un hueco en Pocitos (ver escenario 2).
 
 2. **Tienda sin cobertura: el sistema sugiere suplentes, uno acepta y otro rechaza**
-   - *Pocitos* (hueco de Romina Ibarra, sin ofertas): Lucía Ferreira → Panel → alerta “Pagnific Pocitos sin cobertura hoy” → “Asignar suplente” → suplentes ordenados por disponibilidad y cercanía → “Enviar oferta” a 2 o 3. En “Ofertas enviadas”, los botones **Demo** simulan la respuesta: uno “Aceptó” (cancela las demás) y otro “Rechazó”.
+   - *Pocitos* (hueco de Romina Ibarra, sin ofertas): Lucía Ferreira → Panel → alerta “Pagnifique Pocitos sin cobertura hoy” → “Asignar suplente” → suplentes ordenados por disponibilidad y cercanía → “Enviar oferta” a 2 o 3. En “Ofertas enviadas”, los botones **Demo** simulan la respuesta: uno “Aceptó” (cancela las demás) y otro “Rechazó”.
    - *Las Piedras* (Martín Ramos): ya hay una oferta **rechazada**, una **sin respuesta** y una **pendiente** para Valentina Techera. Ver como **Valentina Techera** (Suplente) → “Aceptar”. Volvé a Lucía: la alerta de Las Piedras desaparece sola.
 
 3. **Interior sin suplente disponible → escalar**

@@ -23,7 +23,7 @@ export default function App() {
   const [error, setError] = useState(null)
   useEffect(() => { cargarDatos().then(setInicial).catch((e) => setError(e.message)) }, [])
   if (error) return <div className="p-8 text-red-700">No se pudieron cargar los datos mock: {error}</div>
-  if (!inicial) return <div className="flex h-screen items-center justify-center text-slate-500">Cargando datos de Pagnific…</div>
+  if (!inicial) return <div className="flex h-screen items-center justify-center text-slate-500">Cargando datos de Pagnifique…</div>
   return (
     <AppProvider inicial={inicial}>
       <HashRouter>

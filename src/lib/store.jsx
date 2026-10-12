@@ -5,7 +5,7 @@ import { indexarTurnos, coberturaAusencia, NO_TRABAJA } from './selectors.js'
 
 const ARCHIVOS = ['empresa', 'regiones', 'tiendas', 'empleados', 'suplentes', 'turnos', 'ausencias', 'licencias', 'coberturas', 'reintegros', 'horas_extras', 'alertas', 'usuarios', 'notificaciones', 'cambios_turno']
 const MUTABLES = ['empleados', 'suplentes', 'turnos', 'ausencias', 'licencias', 'coberturas', 'reintegros', 'horasExtras', 'alertas', 'notificaciones', 'cambios', 'config', 'notasLegajo']
-const SS_KEY = 'pagnific-demo-v1'
+const SS_KEY = 'pagnifique-demo-v1'
 const T0 = Date.now()
 // Reloj simulado: arranca a las 07:50 del "hoy" de la demo y avanza con el tiempo real.
 export const ahoraSim = () => addMin(AHORA, Math.floor((Date.now() - T0) / 60000))

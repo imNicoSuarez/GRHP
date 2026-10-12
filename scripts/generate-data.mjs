@@ -1,4 +1,4 @@
-// Generador determinístico de los datos mock de Pagnific → public/data/*.json
+// Generador determinístico de los datos mock de Pagnifique → public/data/*.json
 // Uso: npm run datos     (los JSON ya vienen generados en el repo)
 import fs from 'node:fs'
 import { HOY, addDays, dow, range, startOfWeek, addMin, minDiff, diffDays, DIAS_KEY } from '../src/lib/dates.js'
@@ -20,8 +20,8 @@ const dt = (f, h, m = 0) => `${f}T${pad(h, 2)}:${pad(m, 2)}:00`
 
 // ───────────────────────── Empresa / regiones ─────────────────────────
 const empresa = {
-  nombre: 'Pagnific',
-  razonSocial: 'Pagnific S.A.',
+  nombre: 'Pagnifique',
+  razonSocial: 'Pagnifique S.A.',
   casaMatriz: { ciudad: 'Montevideo', direccion: 'Av. Italia 3456', lat: -34.8856, lon: -56.1315 },
   moneda: '$U',
   hoyDemo: HOY,
@@ -63,36 +63,36 @@ const regionDeDepto = Object.fromEntries(regiones.flatMap((r) => r.departamentos
 // ───────────────────────── Tiendas ─────────────────────────
 // [id, nombre, depto, ciudad, lat, lon, dotación/turno, personal total, días abierto (7|6), dato relevante]
 const T = [
-  ['T01', 'Pagnific 18 de Julio', 'Montevideo', 'Montevideo', -34.905, -56.191, 2, 6, 7, 'Tienda insignia: mayor facturación del país'],
-  ['T02', 'Pagnific Pocitos', 'Montevideo', 'Montevideo', -34.912, -56.152, 2, 6, 7, 'Pico de demanda de jueves a sábado'],
-  ['T03', 'Pagnific Tres Cruces', 'Montevideo', 'Montevideo', -34.894, -56.166, 2, 6, 7, 'Shopping: horario extendido los fines de semana'],
-  ['T04', 'Pagnific Unión', 'Montevideo', 'Montevideo', -34.875, -56.135, 2, 6, 7, 'Alta rotación de personal en el último trimestre'],
-  ['T05', 'Pagnific Cerro', 'Montevideo', 'Montevideo', -34.887, -56.255, 1, 4, 6, 'Zona con transporte limitado después de las 21 h'],
-  ['T06', 'Pagnific Ciudad Vieja', 'Montevideo', 'Montevideo', -34.907, -56.204, 1, 3, 6, 'Flujo de turistas de cruceros los lunes y martes'],
-  ['T07', 'Pagnific Las Piedras', 'Canelones', 'Las Piedras', -34.730, -56.219, 1, 4, 6, 'Sin cobertura frecuente: depende de suplentes de Montevideo'],
-  ['T08', 'Pagnific Ciudad de la Costa', 'Canelones', 'Ciudad de la Costa', -34.815, -56.020, 2, 6, 7, 'Crecimiento sostenido de ventas (+12 % interanual)'],
-  ['T09', 'Pagnific Pando', 'Canelones', 'Pando', -34.717, -55.958, 1, 3, 6, 'Tienda chica, un solo encargado con apertura y cierre'],
-  ['T10', 'Pagnific San José', 'San José', 'San José de Mayo', -34.337, -56.713, 1, 4, 6, 'Feria agropecuaria en noviembre: refuerzo de dotación'],
-  ['T11', 'Pagnific Punta del Este', 'Maldonado', 'Punta del Este', -34.963, -54.946, 2, 6, 7, 'Temporada alta: se prepara refuerzo desde noviembre'],
-  ['T12', 'Pagnific Maldonado Centro', 'Maldonado', 'Maldonado', -34.909, -54.958, 1, 4, 6, 'Caso de reintegro con certificado por vencer'],
-  ['T13', 'Pagnific Rocha', 'Rocha', 'Rocha', -34.483, -54.336, 1, 3, 6, 'Demanda estacional por turismo en La Paloma'],
-  ['T14', 'Pagnific Treinta y Tres', 'Treinta y Tres', 'Treinta y Tres', -33.233, -54.383, 1, 3, 6, 'Reintegro con alta próxima'],
-  ['T15', 'Pagnific Melo', 'Cerro Largo', 'Melo', -32.370, -54.167, 1, 4, 6, 'Compras de frontera con Brasil: picos de fin de mes'],
-  ['T16', 'Pagnific Minas', 'Lavalleja', 'Minas', -34.376, -55.238, 1, 3, 6, 'Una sola suplente cubre toda la zona'],
-  ['T17', 'Pagnific Colonia', 'Colonia', 'Colonia del Sacramento', -34.471, -57.844, 1, 4, 6, 'Turismo receptivo; ausencia futura sin cubrir'],
-  ['T18', 'Pagnific Carmelo', 'Colonia', 'Carmelo', -33.998, -58.285, 1, 3, 6, 'Depende de suplentes que viajan desde Colonia'],
-  ['T19', 'Pagnific Mercedes', 'Soriano', 'Mercedes', -33.252, -58.030, 1, 4, 6, 'Patrón de faltas los lunes detectado en un legajo'],
-  ['T20', 'Pagnific Fray Bentos', 'Río Negro', 'Fray Bentos', -33.116, -58.311, 1, 3, 6, 'Buen desempeño: cero horas extras en el mes'],
-  ['T21', 'Pagnific Trinidad', 'Flores', 'Trinidad', -33.517, -56.900, 1, 3, 6, 'Departamento con una única tienda y un solo suplente'],
-  ['T22', 'Pagnific Paysandú', 'Paysandú', 'Paysandú', -32.321, -58.075, 1, 4, 6, 'Reintegro prolongado con cobertura temporal'],
-  ['T23', 'Pagnific Salto', 'Salto', 'Salto', -31.383, -57.961, 1, 4, 6, 'Caso de reintegro con ajuste de tareas'],
-  ['T24', 'Pagnific Salto Costanera', 'Salto', 'Salto', -31.390, -57.955, 1, 3, 6, 'Prestadora de personal a Artigas ante faltantes'],
-  ['T25', 'Pagnific Artigas', 'Artigas', 'Artigas', -30.400, -56.468, 1, 3, 6, 'Sin suplentes en la zona: se escala a otras tiendas o externos'],
-  ['T26', 'Pagnific Durazno', 'Durazno', 'Durazno', -33.381, -56.523, 1, 3, 6, 'Ausencia prolongada por enfermedad en seguimiento'],
-  ['T27', 'Pagnific Florida', 'Florida', 'Florida', -34.099, -56.214, 1, 3, 6, 'Obras en la calle: baja afluencia hasta fin de mes'],
-  ['T28', 'Pagnific Tacuarembó', 'Tacuarembó', 'Tacuarembó', -31.711, -55.981, 1, 4, 6, 'Certificado médico próximo a vencer'],
-  ['T29', 'Pagnific Rivera', 'Rivera', 'Rivera', -30.905, -55.551, 1, 4, 6, 'Frontera seca con Livramento: picos los fines de semana'],
-  ['T30', 'Pagnific Rivera Frontera', 'Rivera', 'Rivera', -30.898, -55.540, 1, 3, 6, 'Free shop vecino: competencia directa'],
+  ['T01', 'Pagnifique 18 de Julio', 'Montevideo', 'Montevideo', -34.905, -56.191, 2, 6, 7, 'Tienda insignia: mayor facturación del país'],
+  ['T02', 'Pagnifique Pocitos', 'Montevideo', 'Montevideo', -34.912, -56.152, 2, 6, 7, 'Pico de demanda de jueves a sábado'],
+  ['T03', 'Pagnifique Tres Cruces', 'Montevideo', 'Montevideo', -34.894, -56.166, 2, 6, 7, 'Shopping: horario extendido los fines de semana'],
+  ['T04', 'Pagnifique Unión', 'Montevideo', 'Montevideo', -34.875, -56.135, 2, 6, 7, 'Alta rotación de personal en el último trimestre'],
+  ['T05', 'Pagnifique Cerro', 'Montevideo', 'Montevideo', -34.887, -56.255, 1, 4, 6, 'Zona con transporte limitado después de las 21 h'],
+  ['T06', 'Pagnifique Ciudad Vieja', 'Montevideo', 'Montevideo', -34.907, -56.204, 1, 3, 6, 'Flujo de turistas de cruceros los lunes y martes'],
+  ['T07', 'Pagnifique Las Piedras', 'Canelones', 'Las Piedras', -34.730, -56.219, 1, 4, 6, 'Sin cobertura frecuente: depende de suplentes de Montevideo'],
+  ['T08', 'Pagnifique Ciudad de la Costa', 'Canelones', 'Ciudad de la Costa', -34.815, -56.020, 2, 6, 7, 'Crecimiento sostenido de ventas (+12 % interanual)'],
+  ['T09', 'Pagnifique Pando', 'Canelones', 'Pando', -34.717, -55.958, 1, 3, 6, 'Tienda chica, un solo encargado con apertura y cierre'],
+  ['T10', 'Pagnifique San José', 'San José', 'San José de Mayo', -34.337, -56.713, 1, 4, 6, 'Feria agropecuaria en noviembre: refuerzo de dotación'],
+  ['T11', 'Pagnifique Punta del Este', 'Maldonado', 'Punta del Este', -34.963, -54.946, 2, 6, 7, 'Temporada alta: se prepara refuerzo desde noviembre'],
+  ['T12', 'Pagnifique Maldonado Centro', 'Maldonado', 'Maldonado', -34.909, -54.958, 1, 4, 6, 'Caso de reintegro con certificado por vencer'],
+  ['T13', 'Pagnifique Rocha', 'Rocha', 'Rocha', -34.483, -54.336, 1, 3, 6, 'Demanda estacional por turismo en La Paloma'],
+  ['T14', 'Pagnifique Treinta y Tres', 'Treinta y Tres', 'Treinta y Tres', -33.233, -54.383, 1, 3, 6, 'Reintegro con alta próxima'],
+  ['T15', 'Pagnifique Melo', 'Cerro Largo', 'Melo', -32.370, -54.167, 1, 4, 6, 'Compras de frontera con Brasil: picos de fin de mes'],
+  ['T16', 'Pagnifique Minas', 'Lavalleja', 'Minas', -34.376, -55.238, 1, 3, 6, 'Una sola suplente cubre toda la zona'],
+  ['T17', 'Pagnifique Colonia', 'Colonia', 'Colonia del Sacramento', -34.471, -57.844, 1, 4, 6, 'Turismo receptivo; ausencia futura sin cubrir'],
+  ['T18', 'Pagnifique Carmelo', 'Colonia', 'Carmelo', -33.998, -58.285, 1, 3, 6, 'Depende de suplentes que viajan desde Colonia'],
+  ['T19', 'Pagnifique Mercedes', 'Soriano', 'Mercedes', -33.252, -58.030, 1, 4, 6, 'Patrón de faltas los lunes detectado en un legajo'],
+  ['T20', 'Pagnifique Fray Bentos', 'Río Negro', 'Fray Bentos', -33.116, -58.311, 1, 3, 6, 'Buen desempeño: cero horas extras en el mes'],
+  ['T21', 'Pagnifique Trinidad', 'Flores', 'Trinidad', -33.517, -56.900, 1, 3, 6, 'Departamento con una única tienda y un solo suplente'],
+  ['T22', 'Pagnifique Paysandú', 'Paysandú', 'Paysandú', -32.321, -58.075, 1, 4, 6, 'Reintegro prolongado con cobertura temporal'],
+  ['T23', 'Pagnifique Salto', 'Salto', 'Salto', -31.383, -57.961, 1, 4, 6, 'Caso de reintegro con ajuste de tareas'],
+  ['T24', 'Pagnifique Salto Costanera', 'Salto', 'Salto', -31.390, -57.955, 1, 3, 6, 'Prestadora de personal a Artigas ante faltantes'],
+  ['T25', 'Pagnifique Artigas', 'Artigas', 'Artigas', -30.400, -56.468, 1, 3, 6, 'Sin suplentes en la zona: se escala a otras tiendas o externos'],
+  ['T26', 'Pagnifique Durazno', 'Durazno', 'Durazno', -33.381, -56.523, 1, 3, 6, 'Ausencia prolongada por enfermedad en seguimiento'],
+  ['T27', 'Pagnifique Florida', 'Florida', 'Florida', -34.099, -56.214, 1, 3, 6, 'Obras en la calle: baja afluencia hasta fin de mes'],
+  ['T28', 'Pagnifique Tacuarembó', 'Tacuarembó', 'Tacuarembó', -31.711, -55.981, 1, 4, 6, 'Certificado médico próximo a vencer'],
+  ['T29', 'Pagnifique Rivera', 'Rivera', 'Rivera', -30.905, -55.551, 1, 4, 6, 'Frontera seca con Livramento: picos los fines de semana'],
+  ['T30', 'Pagnifique Rivera Frontera', 'Rivera', 'Rivera', -30.898, -55.540, 1, 3, 6, 'Free shop vecino: competencia directa'],
 ]
 const tiendas = T.map(([id, nombre, departamento, ciudad, lat, lon, dotacion, personal, dias, nota]) => ({
   id, nombre, departamento, ciudad, regionId: regionDeDepto[departamento], lat, lon,
@@ -121,7 +121,7 @@ function nuevoEmpleado(o) {
     id, nombre, genero: g, cargo: o.cargo, tiendaId: o.tiendaId || null, regionId: o.regionId || null,
     contrato: o.contrato || 'Efectivo', ingreso, saldoLicenciaDias: ri(3, 20),
     telefono: `09${ri(1, 9)} ${pad(ri(0, 999))} ${pad(ri(0, 999))}`, foto: 'placeholder', avatarColor: pick(COLORES),
-    email: nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ /g, '.') + '@pagnific.com.uy',
+    email: nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ /g, '.') + '@pagnifique.com.uy',
     cedula: `${ri(1, 5)}.${pad(ri(0, 999))}.${pad(ri(0, 999))}-${ri(0, 9)}`,
     fechaNacimiento: addDays('2005-01-01', -ri(0, 365 * 38)), domicilio: `${pick(CALLES)} ${ri(100, 3999)}, ${ciudad}`,
     contactoEmergencia: { nombre: genName(rnd() < 0.5 ? 'F' : 'M'), parentesco: pick(['Madre', 'Pareja', 'Hermano/a', 'Padre']), telefono: `09${ri(1, 9)} ${pad(ri(0, 999))} ${pad(ri(0, 999))}` },
@@ -247,7 +247,7 @@ function asegurarTurno(empId, fecha, franja) {
 function renombrar(emp, nombre, extra = {}) {
   usedNames.add(nombre)
   emp.nombre = nombre
-  emp.email = nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ /g, '.') + '@pagnific.com.uy'
+  emp.email = nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ /g, '.') + '@pagnifique.com.uy'
   Object.assign(emp, extra)
   protegidos.add(emp.id)
 }
@@ -632,13 +632,13 @@ const usuarios = [
 ]
 const notificaciones = []
 const notif = (usuarioId, f, titulo, texto, ruta, leida = false) => notificaciones.push({ id: 'N' + pad(notificaciones.length + 1), usuarioId, fecha: f, titulo, texto, ruta: ruta || null, leida })
-notif('U-EMP-1', dt(HOY, 7, 5), 'Tu turno de hoy', 'Hoy trabajás de 09:00 a 17:00 en Pagnific Pocitos.', '/')
+notif('U-EMP-1', dt(HOY, 7, 5), 'Tu turno de hoy', 'Hoy trabajás de 09:00 a 17:00 en Pagnifique Pocitos.', '/')
 notif('U-EMP-1', dt('2026-10-08', 16, 40), 'Licencia en revisión', 'Tu solicitud de licencia anual (26/10 al 30/10) está pendiente de aprobación.', '/licencias')
 notif('U-EMP-1', dt('2026-09-18', 15, 41), 'Licencia rechazada', 'Tu licencia por estudio fue rechazada. Tocá para ver el motivo.', '/licencias', true)
 notif('U-EMP-1', dt('2026-10-03', 18, 10), 'Cambio de turno aprobado', 'Tu cambio de turno fue aprobado por la coordinadora.', '/turnos', true)
 notif('U-EMP-2', dt('2026-10-09', 10, 0), 'Seguimiento de tu reintegro', 'Recordá el control médico del 21/10. Tu ajuste de tareas continúa vigente.', '/reintegro')
 notif('U-EMP-3', dt(HOY, 8, 0), 'Tu certificado está por vencer', `Tu certificado médico vence el ${addDays(HOY, 2).split('-').reverse().join('/')}. Subí el certificado actualizado.`, '/reintegro')
-notif('U-SUPL-1', dt(HOY, 7, 20), 'Nueva oferta de cobertura', 'Pagnific Las Piedras · hoy 09:00–17:00. Respondé lo antes posible.', '/ofertas')
+notif('U-SUPL-1', dt(HOY, 7, 20), 'Nueva oferta de cobertura', 'Pagnifique Las Piedras · hoy 09:00–17:00. Respondé lo antes posible.', '/ofertas')
 notif('U-SUPL-1', dt('2026-10-02', 18, 0), 'Cobertura confirmada', 'Quedó confirmada tu cobertura del 03/10 en Ciudad de la Costa.', '/coberturas', true)
 notif('U-SUPL-2', dt(HOY, 7, 0), 'Completá tu disponibilidad', 'Actualizá tu disponibilidad de la próxima semana para recibir más ofertas.', '/disponibilidad')
 

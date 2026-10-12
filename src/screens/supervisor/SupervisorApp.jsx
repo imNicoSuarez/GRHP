@@ -90,7 +90,7 @@ function Tablero() {
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             {['rojo', 'amarillo', 'verde'].map((n) => { const c = tiendas.filter((t) => semaforoTienda(idx, t, { reintegros }).nivel === n).length; return <div key={n} className="rounded-xl bg-slate-50 p-3"><div className="text-2xl font-bold">{c}</div><Semaforo nivel={n} conTexto={false} size={14} /><div className="text-xs text-slate-600">{n === 'rojo' ? 'Sin cobertura' : n === 'amarillo' ? 'Atención' : 'Sin novedades'}</div></div> })}
           </div>
-          <ul className="mt-3 space-y-1 text-sm">{rojas.map((t) => <li key={t.id}><Link className="font-semibold text-brand-700 hover:underline" to={`/tienda/${t.id}`}>● {t.nombre.replace('Pagnific ', '')}</Link> <span className="text-slate-500">({t.departamento})</span></li>)}</ul>
+          <ul className="mt-3 space-y-1 text-sm">{rojas.map((t) => <li key={t.id}><Link className="font-semibold text-brand-700 hover:underline" to={`/tienda/${t.id}`}>● {t.nombre.replace('Pagnifique ', '')}</Link> <span className="text-slate-500">({t.departamento})</span></li>)}</ul>
           <Link to="/mapa" className="btn-secondary btn-sm mt-3"><Icon n="map" size={14} /> Abrir mapa</Link>
         </Card>
       </div>
@@ -122,7 +122,7 @@ function LicenciasSup({ lista }) {
         {lista.map((l) => (
           <li key={l.id} className="flex flex-wrap items-center gap-3 py-3 text-sm">
             <Avatar nombre={maps.emp[l.empleadoId].nombre} color={maps.emp[l.empleadoId].avatarColor} size={34} />
-            <div className="min-w-0 flex-1"><b>{maps.emp[l.empleadoId].nombre}</b> · {maps.tienda[l.tiendaId].nombre.replace('Pagnific ', '')}<div className="text-slate-600">{config.tiposLicencia.find((t) => t.id === l.tipo).nombre} · {fmt(l.desde)} al {fmt(l.hasta)} ({l.dias} d){l.comentario && ` · “${l.comentario}”`}</div></div>
+            <div className="min-w-0 flex-1"><b>{maps.emp[l.empleadoId].nombre}</b> · {maps.tienda[l.tiendaId].nombre.replace('Pagnifique ', '')}<div className="text-slate-600">{config.tiposLicencia.find((t) => t.id === l.tipo).nombre} · {fmt(l.desde)} al {fmt(l.hasta)} ({l.dias} d){l.comentario && ` · “${l.comentario}”`}</div></div>
             <button className="btn-ok btn-sm" onClick={() => acciones.resolverLicencia(l.id, 'aprobada')}>Aprobar</button>
             <button className="btn-danger btn-sm" onClick={() => { setRech(l); setMotivo('') }}>Rechazar</button>
           </li>
@@ -167,7 +167,7 @@ function Mapa() {
             <div className="space-y-3">
               <div className="flex items-center justify-between"><h2 className="text-lg font-bold">{sel}</h2><Semaforo nivel={s.nivel} /></div>
               <div className="grid grid-cols-3 gap-2 text-center text-sm"><div className="rounded-xl bg-slate-50 p-2"><div className="font-bold">{pct(s.m.ausentismo)}</div><div className="text-xs text-slate-500">ausentismo</div></div><div className="rounded-xl bg-slate-50 p-2"><div className="font-bold">{num(s.m.hePorPersona, 1)} h</div><div className="text-xs text-slate-500">extras/persona</div></div><div className="rounded-xl bg-slate-50 p-2"><div className="font-bold">{pct(s.m.cobertura, 0)}</div><div className="text-xs text-slate-500">cobertura</div></div></div>
-              <ul className="space-y-2">{s.ts.map((t, i) => <li key={t.id}><Link to={`/tienda/${t.id}`} className="block rounded-xl p-3 ring-1 ring-slate-200 hover:ring-brand-600"><div className="flex items-center justify-between gap-2"><b>{t.nombre.replace('Pagnific ', '')}</b><Semaforo nivel={s.sems[i].nivel} /></div><div className="mt-1 text-xs text-slate-600">{s.sems[i].motivos.join(' · ') || 'Dotación completa'}</div><div className="mt-1 text-xs text-slate-500">📌 {t.datoRelevante}</div></Link></li>)}</ul>
+              <ul className="space-y-2">{s.ts.map((t, i) => <li key={t.id}><Link to={`/tienda/${t.id}`} className="block rounded-xl p-3 ring-1 ring-slate-200 hover:ring-brand-600"><div className="flex items-center justify-between gap-2"><b>{t.nombre.replace('Pagnifique ', '')}</b><Semaforo nivel={s.sems[i].nivel} /></div><div className="mt-1 text-xs text-slate-600">{s.sems[i].motivos.join(' · ') || 'Dotación completa'}</div><div className="mt-1 text-xs text-slate-500">📌 {t.datoRelevante}</div></Link></li>)}</ul>
             </div>
           ) : <Vacio>Elegí un departamento.</Vacio>}
         </Card>
@@ -205,7 +205,7 @@ function Comparativas() {
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-slate-50 text-xs"><tr>{th('nombre', 'Tienda')}<th className="p-3 text-xs uppercase text-slate-500">Región</th>{th('ausentismo', 'Ausentismo', true)}{th('cobertura', 'Cobertura', true)}{th('extras', 'Extras/persona', true)}{th('costo', 'Costo', true)}</tr></thead>
             <tbody className="divide-y divide-slate-100">
-              {filas.map(({ t, m }) => <tr key={t.id} className="hover:bg-brand-50/40"><td className="p-3"><Link to={`/tienda/${t.id}`} className="font-semibold text-brand-700">{t.nombre.replace('Pagnific ', '')}</Link><div className="text-xs text-slate-500">{t.departamento}</div></td><td className="p-3 text-slate-600">{maps.region[t.regionId].nombre}</td>
+              {filas.map(({ t, m }) => <tr key={t.id} className="hover:bg-brand-50/40"><td className="p-3"><Link to={`/tienda/${t.id}`} className="font-semibold text-brand-700">{t.nombre.replace('Pagnifique ', '')}</Link><div className="text-xs text-slate-500">{t.departamento}</div></td><td className="p-3 text-slate-600">{maps.region[t.regionId].nombre}</td>
                 <td className="p-3 text-right"><Badge tono={m.ausentismo > 6 ? 'bad' : m.ausentismo > 3.5 ? 'warn' : 'ok'}>{pct(m.ausentismo)}</Badge></td><td className="p-3 text-right"><Badge tono={m.cobertura < 70 ? 'bad' : m.cobertura < 90 ? 'warn' : 'ok'}>{pct(m.cobertura, 0)}</Badge></td><td className="p-3 text-right tabular-nums">{num(m.hePorPersona, 1)} h</td><td className="p-3 text-right tabular-nums">{pesos(m.costo)}</td></tr>)}
             </tbody>
           </table>
@@ -253,7 +253,7 @@ function Reportes() {
     const esc = (v) => `"${String(v).replaceAll('"', '""')}"`
     const csv = '﻿' + [rep.cols, ...rep.rows].map((r) => r.map(esc).join(',')).join('\r\n')
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-    const a = document.createElement('a'); a.href = url; a.download = `pagnific_${tipo}_${HOY}.csv`; a.click(); URL.revokeObjectURL(url)
+    const a = document.createElement('a'); a.href = url; a.download = `pagnifique_${tipo}_${HOY}.csv`; a.click(); URL.revokeObjectURL(url)
   }
   return (
     <div className="space-y-4">
