@@ -1,5 +1,5 @@
 // Pantallas compartidas por Coordinadora y Supervisor: cobertura, reintegros, legajo/equipo, detalle de tienda, alertas.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Avatar, Badge, Barra, Campo, Card, Estado, Icon, Modal, Semaforo, Stat, Tabs, Titulo, Vacio, cx } from '../../components/ui.jsx'
 import { useApp } from '../../lib/store.jsx'
@@ -28,6 +28,29 @@ export function Responsable({ a }) {
     <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 py-1 pl-1 pr-3 text-sm text-slate-700">
       <Avatar nombre={r.nombre} color={r.avatarColor} size={24} />
       <span>Lo resuelve: <b className="text-slate-900">{r.nombre}</b> <span className="text-slate-500">· {ROL_ETIQ[a.responsable?.rol] || 'Coordinadora regional'}</span></span>
+    </span>
+  )
+}
+
+// Menú discreto "⋯" para acciones poco frecuentes (p. ej. intervención del Supervisor como administrador)
+export function MenuMas({ items, etiqueta = 'Más acciones' }) {
+  const [abierto, setAbierto] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!abierto) return
+    const fuera = (e) => ref.current && !ref.current.contains(e.target) && setAbierto(false)
+    const esc = (e) => e.key === 'Escape' && setAbierto(false)
+    document.addEventListener('mousedown', fuera); document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('mousedown', fuera); document.removeEventListener('keydown', esc) }
+  }, [abierto])
+  return (
+    <span ref={ref} className="relative inline-block">
+      <button aria-label={etiqueta} aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(!abierto)} className="rounded-lg px-2 py-1 text-lg font-bold leading-none text-slate-500 ring-1 ring-slate-200 hover:bg-slate-100">⋯</button>
+      {abierto && (
+        <ul role="menu" className="absolute right-0 z-30 mt-1 min-w-[230px] rounded-xl bg-white p-1 text-sm shadow-lg ring-1 ring-slate-200">
+          {items.map((it) => <li key={it.label} role="none"><button role="menuitem" onClick={() => { setAbierto(false); it.onClick() }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-slate-100">{it.label}</button></li>)}
+        </ul>
+      )}
     </span>
   )
 }
@@ -87,7 +110,13 @@ export function AlertaItem({ a, rol, compacta }) {
           {esSup && !elevada && <button onClick={() => nav(ac.to)} className="btn-secondary btn-sm">Ver detalle <Icon n="right" size={14} /></button>}
           {(!esSup || elevada) && <button onClick={() => nav(ac.to)} className="btn-primary btn-sm">{ac.label} <Icon n="right" size={14} /></button>}
           {!compacta && esSup && elevada && <AccionesElevada a={a} />}
-          {!compacta && esSup && g.estado === 'sin_gestionar' && <button onClick={() => acciones.recordarAlerta(a.id)} className="btn-secondary btn-sm">Recordar a la coordinadora</button>}
+          {esSup && !elevada && (
+            <MenuMas items={[
+              ...(g.estado === 'sin_gestionar' ? [{ label: 'Recordar a la coordinadora', onClick: () => acciones.recordarAlerta(a.id) }] : []),
+              { label: 'Intervenir como administrador', onClick: () => { acciones.intervenirAlerta(a.id); nav(`${ac.to}${ac.to.includes('?') ? '&' : '?'}admin=1`) } },
+              { label: 'Marcar atendida (administrador)', onClick: () => acciones.resolverAlerta(a.id, 'Cerrada por Supervisión como administrador') },
+            ]} />
+          )}
           {!compacta && !esSup && g.estado === 'sin_gestionar' && <button onClick={() => acciones.tomarAlerta(a.id)} className="btn-secondary btn-sm">Me hago cargo</button>}
           {!compacta && !esSup && !elevada && <BotonElevar onElevar={(m) => acciones.elevarAlerta(a.id, m)} />}
           {!compacta && !esSup && !elevada && a.tipo !== 'sin_cobertura' && <button onClick={() => acciones.resolverAlerta(a.id)} className="btn-secondary btn-sm">Marcar atendida</button>}
@@ -153,7 +182,9 @@ export function CoberturaPage() {
   const escalar = sug && !sug.hayEnZona
   const alerta = alertas.find((x) => x.ausenciaId === aus.id && !x.resuelta)
   const elevada = alerta?.gestion?.estado === 'elevada'
-  const puede = usuario.rol !== 'supervisor' || elevada
+  const [sp, setSp] = useSearchParams()
+  const admin = usuario.rol === 'supervisor' && sp.get('admin') === '1'
+  const puede = usuario.rol !== 'supervisor' || elevada || admin
   const resp = alerta ? maps.emp[alerta.responsable.empleadoId] : maps.emp[maps.region[aus.regionId].coordinadoraId]
   return (
     <div className="space-y-5">
@@ -174,12 +205,13 @@ export function CoberturaPage() {
         <Card className={cx('space-y-2 border-l-4 p-4', elevada ? 'border-sky-500' : 'border-slate-300')}>
           <div className="flex flex-wrap items-center gap-2"><EstadoGestion a={alerta} /><Responsable a={alerta} /></div>
           {alerta.gestion?.nota && <p className="text-sm text-slate-700"><b>{elevada ? 'Motivo de la elevación: ' : 'Nota: '}</b>{alerta.gestion.nota}</p>}
-          {usuario.rol === 'supervisor' && !elevada && <p className="text-sm font-semibold text-slate-700">Solo lectura: la resuelve {resp.nombre}. Intervenís recién si ella lo eleva.</p>}
+          {usuario.rol === 'supervisor' && !elevada && !admin && <div className="flex items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-700">Solo lectura: la resuelve {resp.nombre}. Intervenís recién si ella lo eleva.</p><MenuMas items={[{ label: 'Intervenir como administrador', onClick: () => { acciones.intervenirAlerta(alerta.id); setSp({ admin: '1' }) } }]} /></div>}
+          {admin && <p className="text-sm font-semibold text-sky-800">Estás interviniendo como administrador. {resp.nombre.split(' ')[0]} fue avisada.</p>}
           {usuario.rol === 'supervisor' && elevada && <div className="flex flex-wrap gap-2"><AccionesElevada a={alerta} /></div>}
           {usuario.rol === 'coordinadora' && !elevada && <div className="flex flex-wrap gap-2">{alerta.gestion?.estado === 'sin_gestionar' && <button className="btn-secondary btn-sm" onClick={() => acciones.tomarAlerta(alerta.id)}>Me hago cargo</button>}<BotonElevar onElevar={(m) => acciones.elevarAlerta(alerta.id, m)} /></div>}
           {usuario.rol === 'coordinadora' && elevada && <p className="text-sm text-slate-600">Esperando la decisión de Supervisión general. Mientras tanto podés seguir buscando cobertura.</p>}
         </Card>
-      ) : usuario.rol === 'supervisor' && <Card className="border-l-4 border-slate-300 p-4 text-sm font-semibold text-slate-700">Solo lectura: la resuelve {resp.nombre} (coordinadora regional).</Card>}
+      ) : usuario.rol === 'supervisor' && <Card className="flex items-center justify-between gap-2 border-l-4 border-slate-300 p-4 text-sm font-semibold text-slate-700"><span>{admin ? `Estás interviniendo como administrador. ${resp.nombre.split(' ')[0]} fue avisada.` : `Solo lectura: la resuelve ${resp.nombre} (coordinadora regional).`}</span>{!admin && <MenuMas items={[{ label: 'Intervenir como administrador', onClick: () => { acciones.avisarIntervencion(aus.regionId, `Cobertura de ${tienda.nombre}`); setSp({ admin: '1' }) } }]} />}</Card>}
 
       {!filas.length && <Card className="border-l-4 border-emerald-500 p-5"><b className="text-emerald-800">✓ Todos los turnos están cubiertos.</b><p className="text-sm text-slate-600">La alerta de “sin cobertura” se resolvió sola.</p></Card>}
 
@@ -314,7 +346,9 @@ function ReintegroDetalle({ r }) {
   const e = maps.emp[r.empleadoId]
   const elev = alertas.find((x) => x.reintegroId === r.id && x.gestion?.estado === 'elevada' && !x.resuelta)
   const esSup = usuario.rol === 'supervisor'
-  const puede = !esSup || !!elev
+  const [sp, setSp] = useSearchParams()
+  const admin = esSup && sp.get('admin') === '1'
+  const puede = !esSup || !!elev || admin
   const coordR = maps.emp[maps.region[r.regionId].coordinadoraId]
   const [nota, setNota] = useState('')
   const [tarea, setTarea] = useState({ texto: '', vence: addDays(HOY, 7) })
@@ -333,7 +367,8 @@ function ReintegroDetalle({ r }) {
       <div className="space-y-2 rounded-xl bg-slate-50 p-3 text-sm">
         <div><span className="label !mb-0 mr-2 inline">Responsable</span><b>{coordR.nombre}</b> (coordinadora regional)</div>
         {elev && <div><Badge tono="info">Elevado a Supervisión</Badge> <span className="text-slate-700">{elev.gestion.nota}</span></div>}
-        {esSup && !elev && <div className="font-semibold text-slate-700">Solo lectura: lo gestiona {coordR.nombre}. Intervenís recién si lo eleva.</div>}
+        {esSup && !elev && !admin && <div className="flex items-center justify-between gap-2 font-semibold text-slate-700"><span>Solo lectura: lo gestiona {coordR.nombre}. Intervenís recién si lo eleva.</span><MenuMas items={[{ label: 'Intervenir como administrador', onClick: () => { acciones.avisarIntervencion(r.regionId, `Reintegro de ${e.nombre}`); setSp({ admin: '1' }) } }]} /></div>}
+        {admin && !elev && <div className="font-semibold text-sky-800">Estás interviniendo como administrador. {coordR.nombre.split(' ')[0]} fue avisada.</div>}
         <div className="flex flex-wrap gap-2">{esSup && elev && <AccionesElevada a={elev} />}{!esSup && !elev && <BotonElevar onElevar={(m) => acciones.elevarReintegro(r.id, m)} />}</div>
       </div>
       <dl className="grid gap-3 text-sm sm:grid-cols-3">
@@ -421,6 +456,8 @@ export function LegajoPage() {
   const e = maps.emp[id]
   const [txt, setTxt] = useState('')
   const [ver, setVer] = useState(null)
+  const [spL, setSpL] = useSearchParams()
+  const adminLeg = spL.get('admin') === '1'
   if (!e) return <Vacio>Persona no encontrada.</Vacio>
   const aus = ausencias.filter((a) => a.empleadoId === id).sort((a, b) => b.desde.localeCompare(a.desde))
   const ult = aus.filter((a) => a.tipo !== 'licencia' && a.desde >= addDays(HOY, -56))
@@ -456,7 +493,7 @@ export function LegajoPage() {
         </Card>
         <Card className="p-5">
           <h2 className="mb-2 font-bold">Seguimiento y conversaciones</h2>
-          {usuario.rol === 'supervisor' ? <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">El seguimiento de esta persona lo hace {maps.emp[maps.region[e.regionId].coordinadoraId].nombre}, coordinadora regional. Solo lectura.</p> : <form onSubmit={(ev) => { ev.preventDefault(); if (txt) { acciones.nota(id, txt, 'conversacion'); setTxt('') } }} className="space-y-2">
+          {usuario.rol === 'supervisor' && !adminLeg ? <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 p-3 text-sm text-slate-700"><span>El seguimiento de esta persona lo hace {maps.emp[maps.region[e.regionId].coordinadoraId].nombre}, coordinadora regional. Solo lectura.</span><MenuMas items={[{ label: 'Intervenir como administrador', onClick: () => { acciones.avisarIntervencion(e.regionId, `Legajo de ${e.nombre}`); setSpL({ admin: '1' }) } }]} /></div> : <form onSubmit={(ev) => { ev.preventDefault(); if (txt) { acciones.nota(id, txt, 'conversacion'); setTxt('') } }} className="space-y-2">
             <textarea className="input" rows={2} placeholder="Registrar conversación o acuerdo (queda en el legajo)…" aria-label="Nota de seguimiento" value={txt} onChange={(ev) => setTxt(ev.target.value)} />
             <div className="flex flex-wrap gap-2"><button className="btn-primary btn-sm">Registrar en el legajo</button>{lunes >= 3 && <button type="button" onClick={() => setTxt('Conversación por patrón de faltas los lunes. Se acuerda avisar con anticipación y revisar horarios.')} className="btn-secondary btn-sm">Usar texto sugerido</button>}</div>
           </form>}

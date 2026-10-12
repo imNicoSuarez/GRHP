@@ -86,13 +86,17 @@ export function Tabs({ tabs, valor, onChange, className }) {
 // Modal accesible (cierra con Esc). En el celular se muestra como "bottom sheet".
 export function Modal({ abierto, onCerrar, titulo, children, ancho = 'max-w-lg' }) {
   const ref = useRef(null)
+  const cerrarRef = useRef(onCerrar)
+  cerrarRef.current = onCerrar
+  // El foco pasa al diálogo solo al abrirlo; si se repitiera en cada render le sacaría el foco al campo que se está escribiendo.
   useEffect(() => {
     if (!abierto) return
-    const h = (e) => e.key === 'Escape' && onCerrar()
+    const h = (e) => e.key === 'Escape' && cerrarRef.current()
     document.addEventListener('keydown', h)
-    ref.current?.focus()
+    const autofoco = ref.current?.querySelector('[data-autofocus], textarea, input, select')
+    ;(autofoco || ref.current)?.focus()
     return () => document.removeEventListener('keydown', h)
-  }, [abierto, onCerrar])
+  }, [abierto])
   if (!abierto) return null
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onCerrar()}>

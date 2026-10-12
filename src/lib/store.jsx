@@ -314,6 +314,19 @@ export function AppProvider({ inicial, children }) {
       })
       avisar('Devuelto a la coordinadora con tu indicación')
     }
+    // El Supervisor es administrador: puede intervenir aunque no se lo hayan elevado (acción discreta, queda registrada y avisa a la coordinadora).
+    A.intervenirAlerta = (id) => {
+      mutar((d) => {
+        const a = d.alertas.find((x) => x.id === id)
+        const antes = a.responsable?.empleadoId
+        a.responsable = { rol: 'supervisor', empleadoId: 'E001' }
+        a.gestion = { estado: 'en_gestion', porId: 'E001', desde: ahoraSim(), nota: 'Intervención de Supervisión como administrador.' }
+        const cid = antes && antes !== 'E001' ? usuarioDeEmpleado(antes) : usuarioDeCoord(a.regionId)
+        notificar(d, cid, 'Supervisión intervino en un tema tuyo', a.titulo, '/')
+      })
+      avisar('Estás interviniendo como administrador. Se avisó a la coordinadora')
+    }
+    A.avisarIntervencion = (regionId, texto) => { mutar((d) => { notificar(d, usuarioDeCoord(regionId), 'Supervisión intervino en un tema tuyo', texto, '/') }); avisar('Estás interviniendo como administrador. Se avisó a la coordinadora') }
     A.recordarAlerta = (id) => {
       mutar((d) => {
         const a = d.alertas.find((x) => x.id === id)
