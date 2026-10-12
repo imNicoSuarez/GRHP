@@ -108,7 +108,7 @@ const AP = ['Rodríguez', 'González', 'Pérez', 'Fernández', 'García', 'Mart�
 const CALLES = ['Av. 18 de Julio', 'Bulevar Artigas', 'Gral. Flores', 'Rivera', 'Colón', 'Sarandí', 'Treinta y Tres', 'Ituzaingó', 'Av. Italia', 'Dr. Luis Alberto de Herrera', 'Lavalleja', 'Artigas', 'Rincón', 'Agraciada', 'Brasil', 'Uruguay']
 const usedNames = new Set(['Camila Acosta', 'Rosana Núñez', 'Daniel Cardozo', 'Valentina Techera', 'Federico Sosa', 'Alejandro Bentancor', 'Lucía Ferreira', 'Mariana Olivera', 'Gabriela Píriz', 'Silvana Techera', 'Andrea Rodríguez', 'Gastón Pintos'])
 const genName = (g) => { for (;;) { const n = `${pick(g === 'F' ? NF : NM)} ${pick(AP)}`; if (!usedNames.has(n)) { usedNames.add(n); return n } } }
-const cargoDe = (base, g) => ({ vendedor: g === 'F' ? 'Vendedora' : 'Vendedor', cajero: g === 'F' ? 'Cajera' : 'Cajero', repositor: g === 'F' ? 'Repositora' : 'Repositor', encargado: g === 'F' ? 'Encargada de tienda' : 'Encargado de tienda' }[base])
+const cargoDe = (base, g) => ({ vendedor: g === 'F' ? 'Vendedora' : 'Vendedor', repositor: g === 'F' ? 'Repositora' : 'Repositor', encargado: g === 'F' ? 'Encargada de tienda' : 'Encargado de tienda' }[base])
 const COLORES = ['#2563eb', '#0891b2', '#7c3aed', '#c2410c', '#4d7c0f', '#be185d', '#0f766e', '#b45309', '#4338ca', '#9f1239']
 const empleados = []
 function nuevoEmpleado(o) {
@@ -138,7 +138,7 @@ function nuevoEmpleado(o) {
 nuevoEmpleado({ nombre: 'Alejandro Bentancor', genero: 'M', cargo: 'Supervisor general', ingreso: '2012-03-05', salario: 118000 })
 const coordNombres = ['Lucía Ferreira', 'Mariana Olivera', 'Gabriela Píriz', 'Silvana Techera', 'Andrea Rodríguez']
 regiones.forEach((r, i) => nuevoEmpleado({ nombre: coordNombres[i], genero: 'F', cargo: 'Coordinadora regional', regionId: r.id, ingreso: addDays('2019-01-01', i * 160), salario: 82000 }))
-const ciclo = ['vendedor', 'cajero', 'vendedor', 'repositor', 'vendedor', 'cajero']
+const ciclo = ['vendedor', 'repositor', 'vendedor', 'vendedor', 'repositor']
 for (const t of tiendas) {
   for (let k = 0; k < t.personal; k++) {
     const base = k === 0 ? 'encargado' : ciclo[(k - 1) % ciclo.length]
@@ -186,31 +186,31 @@ const D_FULL = Object.fromEntries(DIAS_KEY.map((k) => [k, ['M', 'T']]))
 const dispAleatoria = () => Object.fromEntries(DIAS_KEY.map((k) => [k, wpick([[[], 22], [['M'], 22], [['T'], 22], [['M', 'T'], 34]])]))
 // [id, nombre, regionId, baseTienda, zonas, tipo, habilitaciones, coberturas, calificación, tiendaOrigen]
 const SU = [
-  ['S01', 'Valentina Techera', 'met', 'T07', ['Canelones', 'Montevideo', 'San José'], 'propio_part_time', ['venta', 'caja', 'reposicion'], 48, 4.9],
+  ['S01', 'Valentina Techera', 'met', 'T07', ['Canelones', 'Montevideo', 'San José'], 'propio_part_time', ['venta', 'reposicion'], 48, 4.9],
   ['S02', 'Nicolás Barboza', 'met', 'T05', ['Montevideo', 'Canelones'], 'propio_part_time', ['venta', 'reposicion'], 31, 4.5],
-  ['S03', 'Florencia Machado', 'met', 'T06', ['Montevideo'], 'de_otra_tienda', ['venta', 'caja'], 22, 4.7, 'T06'],
-  ['S04', 'Santiago Latorre', 'met', 'T09', ['Canelones', 'Montevideo'], 'propio_part_time', ['venta', 'caja', 'apertura'], 37, 4.3],
-  ['S05', 'Bianca Correa', 'met', 'T04', ['Montevideo'], 'propio_part_time', ['venta', 'caja', 'apertura', 'encargado'], 54, 4.8],
+  ['S03', 'Florencia Machado', 'met', 'T06', ['Montevideo'], 'de_otra_tienda', ['venta', 'reposicion'], 22, 4.7, 'T06'],
+  ['S04', 'Santiago Latorre', 'met', 'T09', ['Canelones', 'Montevideo'], 'propio_part_time', ['venta', 'apertura'], 37, 4.3],
+  ['S05', 'Bianca Correa', 'met', 'T04', ['Montevideo'], 'propio_part_time', ['venta', 'apertura', 'encargado'], 54, 4.8],
   ['S06', 'Mauricio Viera', 'met', 'T10', ['San José', 'Canelones'], 'propio_part_time', ['venta', 'reposicion'], 19, 4.1],
-  ['S07', 'Lorena Benítez', 'met', 'T08', ['Canelones', 'Montevideo'], 'de_otra_tienda', ['venta', 'caja'], 27, 4.4, 'T08'],
-  ['S08', 'Federico Sosa', 'este', 'T12', ['Maldonado', 'Rocha'], 'propio_part_time', ['venta', 'caja', 'apertura'], 41, 4.7],
+  ['S07', 'Lorena Benítez', 'met', 'T08', ['Canelones', 'Montevideo'], 'de_otra_tienda', ['venta', 'reposicion'], 27, 4.4, 'T08'],
+  ['S08', 'Federico Sosa', 'este', 'T12', ['Maldonado', 'Rocha'], 'propio_part_time', ['venta', 'apertura'], 41, 4.7],
   ['S09', 'Carolina Fagúndez', 'este', 'T16', ['Lavalleja', 'Maldonado'], 'propio_part_time', ['venta', 'reposicion'], 24, 4.6],
-  ['S10', 'Rodrigo Britos', 'este', 'T13', ['Rocha', 'Maldonado', 'Treinta y Tres'], 'de_otra_tienda', ['venta', 'caja'], 30, 4.2, 'T13'],
-  ['S11', 'Leticia Umpiérrez', 'este', 'T14', ['Treinta y Tres', 'Cerro Largo'], 'propio_part_time', ['venta', 'caja'], 17, 4.0],
+  ['S10', 'Rodrigo Britos', 'este', 'T13', ['Rocha', 'Maldonado', 'Treinta y Tres'], 'de_otra_tienda', ['venta', 'reposicion'], 30, 4.2, 'T13'],
+  ['S11', 'Leticia Umpiérrez', 'este', 'T14', ['Treinta y Tres', 'Cerro Largo'], 'propio_part_time', ['venta', 'reposicion'], 17, 4.0],
   ['S12', 'Hernán Pintos', 'este', 'T15', ['Cerro Largo', 'Treinta y Tres'], 'propio_part_time', ['venta', 'reposicion', 'apertura'], 26, 4.5],
-  ['S13', 'Ximena Quintana', 'ls', 'T17', ['Colonia', 'Soriano'], 'propio_part_time', ['venta', 'caja', 'apertura'], 33, 4.6],
-  ['S14', 'Gonzalo Zeballos', 'ls', 'T19', ['Soriano', 'Río Negro'], 'de_otra_tienda', ['venta', 'caja'], 21, 4.3, 'T19'],
+  ['S13', 'Ximena Quintana', 'ls', 'T17', ['Colonia', 'Soriano'], 'propio_part_time', ['venta', 'apertura'], 33, 4.6],
+  ['S14', 'Gonzalo Zeballos', 'ls', 'T19', ['Soriano', 'Río Negro'], 'de_otra_tienda', ['venta', 'reposicion'], 21, 4.3, 'T19'],
   ['S15', 'Paula Lacuesta', 'ls', 'T20', ['Río Negro', 'Soriano'], 'propio_part_time', ['venta', 'reposicion'], 15, 4.4],
-  ['S16', 'Cristian Delgado', 'ls', 'T21', ['Flores'], 'propio_part_time', ['venta', 'caja'], 12, 4.0],
-  ['S17', 'Daniela Maidana', 'ln', 'T22', ['Paysandú'], 'propio_part_time', ['venta', 'caja', 'apertura'], 29, 4.6],
+  ['S16', 'Cristian Delgado', 'ls', 'T21', ['Flores'], 'propio_part_time', ['venta', 'reposicion'], 12, 4.0],
+  ['S17', 'Daniela Maidana', 'ln', 'T22', ['Paysandú'], 'propio_part_time', ['venta', 'apertura'], 29, 4.6],
   ['S18', 'Marcelo Cuello', 'ln', 'T24', ['Salto', 'Paysandú'], 'de_otra_tienda', ['venta', 'reposicion'], 18, 4.2, 'T24'],
-  ['S19', 'Natalia Amorín', 'ln', 'T23', ['Salto'], 'propio_part_time', ['venta', 'caja'], 20, 4.5],
-  ['S20', 'Walter Ibarra', 'cn', 'T29', ['Rivera', 'Tacuarembó'], 'propio_part_time', ['venta', 'caja', 'apertura'], 35, 4.4],
+  ['S19', 'Natalia Amorín', 'ln', 'T23', ['Salto'], 'propio_part_time', ['venta', 'reposicion'], 20, 4.5],
+  ['S20', 'Walter Ibarra', 'cn', 'T29', ['Rivera', 'Tacuarembó'], 'propio_part_time', ['venta', 'apertura'], 35, 4.4],
   ['S21', 'Silvia Giménez', 'cn', 'T28', ['Tacuarembó', 'Durazno'], 'propio_part_time', ['venta', 'reposicion'], 16, 4.1],
-  ['S22', 'Álvaro Texeira', 'cn', 'T26', ['Durazno', 'Florida'], 'propio_part_time', ['venta', 'caja'], 23, 4.3],
-  ['S23', 'Gerardo Duarte', 'cn', 'T30', ['Rivera', 'Tacuarembó', 'Artigas', 'Salto'], 'externo', ['venta', 'caja', 'reposicion'], 44, 4.6],
-  ['S24', 'Ignacio Moreira', 'met', 'T01', ['Montevideo', 'Canelones', 'Maldonado'], 'externo', ['venta', 'caja', 'reposicion', 'apertura'], 63, 4.5],
-  ['S25', 'Camila Izquierdo', 'este', 'T11', ['Maldonado', 'Rocha'], 'externo', ['venta', 'caja'], 28, 4.2],
+  ['S22', 'Álvaro Texeira', 'cn', 'T26', ['Durazno', 'Florida'], 'propio_part_time', ['venta', 'reposicion'], 23, 4.3],
+  ['S23', 'Gerardo Duarte', 'cn', 'T30', ['Rivera', 'Tacuarembó', 'Artigas', 'Salto'], 'externo', ['venta', 'reposicion'], 44, 4.6],
+  ['S24', 'Ignacio Moreira', 'met', 'T01', ['Montevideo', 'Canelones', 'Maldonado'], 'externo', ['venta', 'reposicion', 'apertura'], 63, 4.5],
+  ['S25', 'Camila Izquierdo', 'este', 'T11', ['Maldonado', 'Rocha'], 'externo', ['venta', 'reposicion'], 28, 4.2],
 ]
 const suplentes = SU.map(([id, nombre, regionId, baseT, zonas, tipo, hab, cob, cal, origen], i) => {
   const b = BASES[baseT]
@@ -432,7 +432,7 @@ const nota = (fecha, autor, texto) => ({ fecha, autor, texto })
 {
   const [e, a] = prolongada('T23', 'Rosana Núñez', '2026-07-27', '2026-09-20', { motivo: 'Cirugía de columna y rehabilitación' })
   nuevaRe({ empleadoId: e.id, tiendaId: e.tiendaId, regionId: e.regionId, ausenciaId: a.id, motivo: 'Cirugía de columna y rehabilitación', desde: '2026-07-27', certificado: { archivo: 'certificado_nunez_alta_20260920.pdf', vigenteHasta: '2026-09-20' }, altaPrevista: '2026-09-21', reintegradoEn: '2026-09-21', estado: 'reintegrado_con_ajuste',
-    ajusteTareas: 'Sin cargar ni mover cajas de más de 5 kg. Prioriza atención en salón y caja. Turno de mañana fijo durante 60 días.',
+    ajusteTareas: 'Sin cargar ni mover cajas de más de 5 kg. Prioriza la atención en el salón. Turno de mañana fijo durante 60 días.',
     notas: [nota('2026-09-18', 'Silvana Techera', 'Alta médica con restricciones. Se acuerda plan de reintegro gradual.'), nota('2026-09-28', 'Silvana Techera', 'Primera semana sin inconvenientes. Se mantiene el ajuste.')],
     tareasPendientes: [{ id: 't1', texto: 'Control médico a los 30 días del reintegro', hecho: false, vence: '2026-10-21' }, { id: 't2', texto: 'Reunión de seguimiento con la encargada', hecho: true, vence: '2026-09-28' }, { id: 't3', texto: 'Revisar si se levanta la restricción de cargas', hecho: false, vence: '2026-11-20' }] })
   e.saldoLicenciaDias = 9
@@ -547,7 +547,7 @@ for (const r of regiones) {
     const e = pick(noEnc(t.id).filter((x) => !x.__ocupadoRe))
     const desde = addDays(HOY, desdeOffset)
     const hasta = addDays(desde, dias - 1)
-    return nuevaLic({ empleadoId: e.id, tipo, desde, hasta, estado, solicitadaEn: dt(addDays(HOY, Math.min(desdeOffset, 0) - ri(3, 25)), ri(8, 18), ri(0, 59)), ...extra })
+    return nuevaLic({ empleadoId: e.id, tipo, desde, hasta, estado, solicitadaEn: dt(addDays(HOY, estado === 'pendiente' ? -ri(1, 4) : Math.min(desdeOffset, 0) - ri(3, 25)), ri(8, 18), ri(0, 59)), ...extra })
   }
   mk('anual', 'pendiente', 20, 5)
   mk('estudio', 'pendiente', 9, 2, { comentario: 'Examen final' })
@@ -644,7 +644,7 @@ notif('U-SUPL-2', dt(HOY, 7, 0), 'Completá tu disponibilidad', 'Actualizá tu d
 
 // 13) Alertas precalculadas
 const al = []
-const alerta = (o) => al.push({ id: 'AL' + pad(al.length + 1, 2), creadaEn: AHORA, resuelta: false, ...o })
+const alerta = (o) => al.push({ id: 'AL' + pad(al.length + 1, 2), creadaEn: AHORA, resuelta: false, responsable: { rol: 'coordinadora', empleadoId: coordDe(o.regionId) }, gestion: { estado: 'sin_gestionar' }, ...o })
 const tn = (id) => tiendaById[id].nombre
 alerta({ tipo: 'sin_cobertura', severidad: 'alta', regionId: 'met', tiendaId: A_pocitos.tiendaId, ausenciaId: A_pocitos.id, titulo: `${tn(A_pocitos.tiendaId)} sin cobertura hoy`, detalle: 'Turno tarde 13:00–21:00: falta 1 persona y no hay ofertas enviadas.' })
 alerta({ tipo: 'sin_cobertura', severidad: 'alta', regionId: 'met', tiendaId: 'T07', ausenciaId: A_lp.id, titulo: 'Las Piedras sin cobertura hoy', detalle: 'Turno mañana 09:00–17:00: 1 suplente rechazó, 1 no respondió y 1 oferta sigue pendiente.' })
@@ -657,6 +657,16 @@ alerta({ tipo: 'certificado_por_vencer', severidad: 'alta', regionId: 'este', ti
 alerta({ tipo: 'certificado_por_vencer', severidad: 'media', regionId: 'cn', tiendaId: 'T28', empleadoId: reint[6].empleadoId, reintegroId: 'RE07', titulo: 'Certificado por vencer en Tacuarembó', detalle: `Vence el ${addDays(HOY, 3).split('-').reverse().join('/')}. Consulta médica el 15/10.` })
 alerta({ tipo: 'alta_proxima', severidad: 'baja', regionId: 'este', tiendaId: 'T14', reintegroId: 'RE04', empleadoId: reint[3].empleadoId, titulo: 'Reintegro próximo en Treinta y Tres', detalle: `Alta prevista el ${addDays(HOY, 4).split('-').reverse().join('/')}. Avisar a la suplente.` })
 alerta({ tipo: 'licencias_pendientes', severidad: 'media', regionId: 'met', titulo: 'Licencias pendientes hace más de 3 días en Metropolitana', detalle: 'Hay solicitudes esperando respuesta. Revisalas en la bandeja.' })
+
+// Quién gestiona cada alerta: por defecto la coordinadora de la región; solo pasa a Supervisión si ella la eleva.
+const setAl = (id, patch) => Object.assign(al.find((a) => a.id === id), patch)
+setAl('AL02', { gestion: { estado: 'en_gestion', porId: 'E002', desde: dt(HOY, 7, 20), nota: 'Ofertas enviadas a 3 suplentes; esperando respuesta.' } })
+setAl('AL03', { creadaEn: dt(HOY, 6, 52) })
+setAl('AL06', { creadaEn: dt(addDays(HOY, -3), 10, 0) })
+setAl('AL07', { creadaEn: dt(addDays(HOY, -2), 9, 0), responsable: { rol: 'supervisor', empleadoId: 'E001' }, gestion: { estado: 'elevada', porId: 'E003', desde: dt(addDays(HOY, -1), 16, 30), nota: 'El pico de temporada en Punta del Este supera la dotación. Solicito autorizar un refuerzo de 2 personas desde noviembre y subir el tope de horas extras de la región.' } })
+setAl('AL08', { creadaEn: dt(addDays(HOY, -1), 9, 0), gestion: { estado: 'en_gestion', porId: 'E003', desde: dt(addDays(HOY, -1), 11, 0), nota: 'Se pidió certificado de renovación al empleado; control médico el 14/10.' } })
+setAl('AL10', { creadaEn: dt(addDays(HOY, -2), 9, 0), gestion: { estado: 'en_gestion', porId: 'E003', desde: dt(addDays(HOY, -1), 10, 0), nota: 'Se coordina el fin de la cobertura con la suplente.' } })
+setAl('AL11', { creadaEn: dt(addDays(HOY, -4), 9, 0) })
 
 // ───────────────────────── Escritura ─────────────────────────
 const strip = (e) => { const { __ocupadoRe, __suplente, maxDias, pref, ...r } = e; return { ...r, maxDias, pref } }
@@ -683,3 +693,4 @@ console.log('tiendas sin ausencias:', tiendas.filter((t) => !ausencias.some((a) 
 console.log('deptos con tienda:', new Set(tiendas.map((t) => t.departamento)).size)
 console.log('HE por persona/región', Object.fromEntries(Object.entries(heProm).map(([k, v]) => [k, +v.toFixed(2)])), 'prom nac', promNac.toFixed(2), '→ Este +' + pctEste + '%')
 console.log('lunes de Gastón:', lunes.map((f) => !!turnoDe(mercP.id, f)?.ausenciaId).join(','))
+console.log('ESCENARIOS', JSON.stringify({ pocitos: empById[pocitosY.id].nombre, lasPiedras: empById[lpX.id].nombre, artigas: empById[arZ.id].nombre, lunes: mercP.nombre }))

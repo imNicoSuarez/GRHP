@@ -152,6 +152,7 @@ export function accionAlerta(a, rol) {
     case 'patron_faltas': return { label: 'Ver legajo y registrar seguimiento', to: `/equipo/${a.empleadoId}` }
     case 'horas_extras_region': return rol === 'supervisor' ? { label: 'Ver comparativa de la región', to: `/comparativas?region=${a.regionId}` } : { label: 'Revisar planificador', to: '/planificador' }
     case 'certificado_por_vencer': case 'alta_proxima': return { label: 'Abrir caso de reintegro', to: `/reintegros/${a.reintegroId}` }
+    case 'elevacion': return { label: 'Abrir caso', to: `/reintegros/${a.reintegroId}` }
     case 'licencias_pendientes': return rol === 'supervisor' ? { label: 'Ver comparativa', to: `/comparativas?region=${a.regionId}` } : { label: 'Ir a la bandeja', to: '/bandeja?tab=licencias' }
     default: return { label: 'Ver', to: '/' }
   }

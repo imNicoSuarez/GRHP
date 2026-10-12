@@ -4,10 +4,10 @@ import { WebLayout } from '../../components/Layouts.jsx'
 import UyMap from '../../components/UyMap.jsx'
 import { Avatar, Badge, BarrasH, BarrasV, Campo, Card, Estado, Icon, Modal, Semaforo, Stat, Tabs, Titulo, Vacio, cx } from '../../components/ui.jsx'
 import { useApp } from '../../lib/store.jsx'
-import { HOY, addDays, fmt, fmtCorto, hace, startOfWeek } from '../../lib/dates.js'
+import { HOY, AHORA, addDays, dow, fmt, fmtCorto, fmtDia, hace, minDiff, range, startOfWeek, DIAS_KEY } from '../../lib/dates.js'
 import { CAUSA_HE, ESTADO_LICENCIA, ESTADO_REINTEGRO, TIPOS_AUSENCIA, TIPO_SUPLENTE, num, pct, pesos } from '../../lib/labels.js'
-import { metricas, peorNivel, semaforoTienda } from '../../lib/selectors.js'
-import { AlertaItem, CoberturaLista, CoberturaPage, EquipoPage, LegajoPage, ReintegrosPage, TiendaPage, huecosAbiertos, useAlertasActivas } from '../shared/Shared.jsx'
+import { huecosDia, metricas, peorNivel, semaforoTienda } from '../../lib/selectors.js'
+import { AccionesElevada, AlertaItem, EstadoGestion, Responsable, CoberturaLista, CoberturaPage, EquipoPage, LegajoPage, ReintegrosPage, TiendaPage, huecosAbiertos, useAlertasActivas } from '../shared/Shared.jsx'
 
 export default function SupervisorApp() {
   const { ausencias, idx, licencias, config } = useApp()
@@ -18,7 +18,8 @@ export default function SupervisorApp() {
     { to: '/', label: 'Tablero nacional', icono: 'chart' },
     { to: '/mapa', label: 'Mapa de Uruguay', icono: 'map' },
     { to: '/comparativas', label: 'Comparativas', icono: 'grid' },
-    { to: '/alertas', label: 'Alertas y aprobaciones', icono: 'alert', n: alertas.filter((a) => a.severidad === 'alta').length + paraMi },
+    { to: '/analisis', label: 'Análisis para decidir', icono: 'sliders' },
+    { to: '/alertas', label: 'Alertas y aprobaciones', icono: 'alert', n: alertas.filter((a) => a.gestion?.estado === 'elevada').length + paraMi },
     { to: '/cobertura', label: 'Cobertura', icono: 'inbox', n: huecos },
     { to: '/reintegros', label: 'Reintegros', icono: 'heart' },
     { to: '/equipo', label: 'Personas', icono: 'users' },
@@ -31,6 +32,7 @@ export default function SupervisorApp() {
         <Route path="/" element={<Tablero />} />
         <Route path="/mapa" element={<Mapa />} />
         <Route path="/comparativas" element={<Comparativas />} />
+        <Route path="/analisis" element={<Analisis />} />
         <Route path="/alertas" element={<Alertas />} />
         <Route path="/cobertura" element={<CoberturaLista />} />
         <Route path="/cobertura/:id" element={<CoberturaPage />} />
@@ -55,6 +57,65 @@ function useMetricas() {
   return { calc, nEmp, tiendas, regiones }
 }
 
+
+function useGestionRegiones() {
+  const { regiones, tiendas, ausencias, licencias, cambios, horasExtras, alertas, idx, maps, reintegros } = useApp()
+  const alertasActivas = useAlertasActivas(null)
+  return regiones.map((r) => {
+    const ids = new Set(tiendas.filter((t) => t.regionId === r.id).map((t) => t.id))
+    const pendAus = ausencias.filter((a) => a.regionId === r.id && ['avisada', 'pendiente_comprobante'].includes(a.estado))
+    const pendLic = licencias.filter((l) => l.regionId === r.id && l.estado === 'pendiente')
+    const pendCam = cambios.filter((c) => c.estado === 'pendiente_coordinadora' && ids.has(c.tiendaId))
+    const pendHE = horasExtras.filter((h) => h.regionId === r.id && h.estado === 'pendiente')
+    const fechas = [...pendAus.map((a) => a.avisadoEn), ...pendLic.map((l) => l.solicitadaEn), ...pendCam.map((c) => c.creadaEn)]
+    const masVieja = fechas.length ? Math.max(...fechas.map((f) => minDiff(f, AHORA))) : 0
+    const resueltas = ausencias.filter((a) => a.regionId === r.id && a.resueltaEn && a.avisadoEn && a.resueltaPor)
+    const tProm = resueltas.length ? resueltas.reduce((s, a) => s + Math.max(0, minDiff(a.avisadoEn, a.resueltaEn)), 0) / resueltas.length : 0
+    const al = alertasActivas.filter((a) => a.regionId === r.id)
+    const huecosHoy = [...ids].reduce((s, id) => s + huecosDia(idx, maps.tienda[id], HOY), 0)
+    return { r, coord: maps.emp[r.coordinadoraId], pend: pendAus.length + pendLic.length + pendCam.length + pendHE.length, masVieja, tProm, sinGestionar: al.filter((a) => (a.gestion?.estado || 'sin_gestionar') === 'sin_gestionar').length, enGestion: al.filter((a) => a.gestion?.estado === 'en_gestion').length, elevadas: al.filter((a) => a.gestion?.estado === 'elevada').length, huecosHoy, reint: reintegros.filter((x) => x.regionId === r.id && x.estado === 'certificado_por_vencer').length }
+  })
+}
+const durar = (min) => (min >= 1440 ? `${Math.floor(min / 1440)} d` : min >= 60 ? `${Math.floor(min / 60)} h` : `${Math.round(min)} min`)
+
+function GestionRegiones() {
+  const filas = useGestionRegiones()
+  return (
+    <Card className="overflow-x-auto">
+      <div className="p-5 pb-2"><h2 className="font-bold">Gestión por región</h2><p className="text-sm text-slate-500">Quién es responsable en cada región y si está al día. Estos temas los resuelven las coordinadoras; llegan a vos solo si los elevan.</p></div>
+      <table className="w-full min-w-[820px] text-left text-sm">
+        <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="p-3">Región · responsable</th><th className="p-3 text-right">Pendientes en bandeja</th><th className="p-3 text-right">Más antigua</th><th className="p-3 text-right">Validación (prom.)</th><th className="p-3 text-right">Alertas sin gestionar</th><th className="p-3 text-right">En gestión</th><th className="p-3 text-right">Elevadas</th><th className="p-3 text-right">Huecos hoy</th></tr></thead>
+        <tbody className="divide-y divide-slate-100">
+          {filas.map((f) => (
+            <tr key={f.r.id}>
+              <td className="p-3"><div className="font-semibold">{f.r.nombre}</div><div className="text-xs text-slate-500">{f.coord.nombre}</div></td>
+              <td className="p-3 text-right"><Badge tono={f.pend > 12 ? 'bad' : f.pend > 6 ? 'warn' : 'ok'}>{f.pend}</Badge></td>
+              <td className="p-3 text-right tabular-nums">{f.pend ? durar(f.masVieja) : '—'}</td>
+              <td className="p-3 text-right tabular-nums">{f.tProm ? durar(f.tProm) : '—'}</td>
+              <td className="p-3 text-right"><Badge tono={f.sinGestionar ? 'warn' : 'ok'}>{f.sinGestionar}</Badge></td>
+              <td className="p-3 text-right tabular-nums">{f.enGestion}</td>
+              <td className="p-3 text-right"><Badge tono={f.elevadas ? 'info' : 'neutral'}>{f.elevadas}</Badge></td>
+              <td className="p-3 text-right"><Badge tono={f.huecosHoy ? 'bad' : 'ok'}>{f.huecosHoy}</Badge></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Card>
+  )
+}
+
+function ElevadasCard() {
+  const alertas = useAlertasActivas(null).filter((a) => a.gestion?.estado === 'elevada')
+  if (!alertas.length) return <Card className="p-4 text-sm text-slate-600"><b>Sin temas elevados.</b> Las coordinadoras están resolviendo lo suyo; si necesitan tu decisión, aparece acá.</Card>
+  return (
+    <Card className="border-l-4 border-sky-500 p-5">
+      <h2 className="font-bold">Elevados a vos ({alertas.length})</h2>
+      <p className="mb-2 text-sm text-slate-500">Una coordinadora pidió tu decisión. Hasta que respondas, sos el responsable.</p>
+      <ul className="space-y-2">{alertas.map((a) => <AlertaItem key={a.id} a={a} rol="supervisor" />)}</ul>
+    </Card>
+  )
+}
+
 // ───────────── Tablero ─────────────
 function Tablero() {
   const app = useApp()
@@ -64,7 +125,7 @@ function Tablero() {
   const desde = addDays(HOY, PERIODOS[per][1])
   const total = calc(desde, HOY, null, nEmp(() => true))
   const alertas = useAlertasActivas(null)
-  const semanas = Array.from({ length: 5 }, (_, i) => { const d = addDays(startOfWeek(HOY), (i - 4) * 7); const m = calc(d, addDays(d, 6) > HOY ? HOY : addDays(d, 6), null, 1); return { etiqueta: fmtCorto(d), valor: +m.ausentismo.toFixed(1), actual: i === 4 } })
+  const semanas = Array.from({ length: 4 }, (_, i) => { const d = addDays(startOfWeek(HOY), (i - 4) * 7); const m = calc(d, addDays(d, 6), null, 1); return { etiqueta: fmtCorto(d), valor: +m.ausentismo.toFixed(1), actual: i === 3 } })
   const porRegion = regiones.map((r) => { const ids = new Set(tiendas.filter((t) => t.regionId === r.id).map((t) => t.id)); const m = calc(desde, HOY, ids, nEmp((e) => e.regionId === r.id)); return { r, m } })
   const paraMi = licencias.filter((l) => l.estado === 'pendiente' && config.tiposLicencia.find((t) => t.id === l.tipo).aprobador === 'supervisor')
   const rojas = tiendas.filter((t) => semaforoTienda(idx, t, { reintegros }).nivel === 'rojo')
@@ -80,7 +141,7 @@ function Tablero() {
         <Stat label="Costo estimado" value={pesos(total.costo)} sub={`Extras ${pesos(total.costoHE)} · suplentes ${pesos(total.costoSup)}`} />
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="p-5 lg:col-span-1"><h2 className="font-bold">Ausentismo semanal</h2><p className="mb-2 text-sm text-slate-500">% de turnos con ausencia</p><BarrasV datos={semanas} formato={(v) => `${v}%`} /></Card>
+        <Card className="p-5 lg:col-span-1"><h2 className="font-bold">Ausentismo semanal</h2><p className="mb-2 text-sm text-slate-500">% de turnos con ausencia, semanas completas</p><BarrasV datos={semanas} formato={(v) => `${v}%`} /></Card>
         <Card className="p-5 lg:col-span-1"><h2 className="font-bold">Horas extras por persona</h2><p className="mb-3 text-sm text-slate-500">Por región, {PERIODOS[per][0].toLowerCase()}</p>
           <BarrasH datos={porRegion.map(({ r, m }) => ({ etiqueta: r.nombre, valor: +m.hePorPersona.toFixed(1), color: m.hePorPersona > prom * 1.5 ? '#dc2626' : r.color }))} formato={(v) => `${v} h`} />
           {porRegion.some(({ m }) => m.hePorPersona > prom * 1.5) && <p className="mt-3 rounded-xl bg-red-50 p-2 text-sm font-semibold text-red-800">⚠ {porRegion.find(({ m }) => m.hePorPersona > prom * 1.5).r.nombre} está {Math.round((porRegion.find(({ m }) => m.hePorPersona > prom * 1.5).m.hePorPersona / prom - 1) * 100)} % sobre el promedio nacional. <Link className="underline" to="/comparativas?region=este">Ver detalle</Link></p>}
@@ -95,6 +156,8 @@ function Tablero() {
         </Card>
       </div>
 
+      <ElevadasCard />
+
       {paraMi.length > 0 && (
         <Card className="border-l-4 border-sky-500 p-5">
           <h2 className="font-bold">Esperan tu aprobación ({paraMi.length})</h2>
@@ -103,9 +166,11 @@ function Tablero() {
         </Card>
       )}
 
+      <GestionRegiones />
+
       <section>
-        <Titulo accion={<Link to="/alertas" className="btn-ghost btn-sm">Ver todas ({alertas.length})</Link>} sub="Cada alerta abre directo la acción que corresponde">Alertas accionables</Titulo>
-        <ul className="space-y-2">{alertas.slice(0, 5).map((a) => <AlertaItem key={a.id} a={a} rol="supervisor" compacta />)}</ul>
+        <Titulo accion={<Link to="/alertas" className="btn-ghost btn-sm">Ver todas ({alertas.length})</Link>} sub="Las gestionan las coordinadoras; acá ves quién es responsable y en qué están">Alertas en seguimiento</Titulo>
+        <ul className="space-y-2">{alertas.filter((a) => a.gestion?.estado !== 'elevada').slice(0, 5).map((a) => <AlertaItem key={a.id} a={a} rol="supervisor" compacta />)}</ul>
       </section>
       <p className="hidden">{turnos.length}{acciones ? '' : ''}</p>
     </div>
@@ -222,14 +287,75 @@ function Alertas() {
   const resueltas = alertas.filter((a) => a.resuelta || !activas.includes(a))
   const paraMi = licencias.filter((l) => l.estado === 'pendiente' && config.tiposLicencia.find((t) => t.id === l.tipo).aprobador === 'supervisor')
   const [ver, setVer] = useState(false)
+  const grupos = [
+    ['elevada', 'Elevadas a vos: requieren tu decisión', 'Las elevó una coordinadora. Desde ahí sos el responsable.'],
+    ['sin_gestionar', 'Sin gestionar: nadie se hizo cargo todavía', 'Le corresponden a la coordinadora de la región. Podés recordárselo.'],
+    ['en_gestion', 'En gestión: ya las está resolviendo la coordinadora', 'Solo lectura. Si lo necesita, ella las eleva.'],
+  ]
   return (
     <div className="space-y-6">
-      <Titulo sub="Resolvelas con un toque: cada una abre la pantalla de la acción">Alertas y aprobaciones</Titulo>
+      <Titulo sub="Las resuelven las coordinadoras. Vos decidís lo que te elevan y controlás que no queden sin dueño">Alertas y aprobaciones</Titulo>
       {paraMi.length > 0 && <Card className="border-l-4 border-sky-500 p-5"><h2 className="font-bold">Licencias que requieren tu aprobación</h2><LicenciasSup lista={paraMi} /></Card>}
-      {['alta', 'media', 'baja'].map((sev) => { const l = activas.filter((a) => a.severidad === sev); return l.length ? <section key={sev}><h2 className="mb-2 font-bold capitalize">Prioridad {sev} ({l.length})</h2><ul className="space-y-2">{l.map((a) => <AlertaItem key={a.id} a={a} rol="supervisor" />)}</ul></section> : null })}
-      {activas.length === 0 && <Vacio icono="🎉">Sin alertas activas.</Vacio>}
+      {grupos.map(([est, tit, sub]) => { const l = activas.filter((a) => (a.gestion?.estado || 'sin_gestionar') === est); return (
+        <section key={est}><h2 className="font-bold">{tit} ({l.length})</h2><p className="mb-2 text-sm text-slate-500">{sub}</p>
+          {l.length ? <ul className="space-y-2">{l.map((a) => <AlertaItem key={a.id} a={a} rol="supervisor" />)}</ul> : <Vacio icono="✓">Nada en esta categoría.</Vacio>}</section>) })}
       <button onClick={() => setVer(!ver)} className="btn-ghost btn-sm">{ver ? 'Ocultar' : 'Ver'} alertas resueltas ({resueltas.length})</button>
-      {ver && <ul className="space-y-1 text-sm text-slate-500">{resueltas.map((a) => <li key={a.id} className="line-through">{a.titulo}</li>)}</ul>}
+      {ver && <ul className="space-y-1 text-sm text-slate-500">{resueltas.map((a) => <li key={a.id}><span className="line-through">{a.titulo}</span>{a.decision && <span> · decisión: {a.decision}</span>}</li>)}</ul>}
+    </div>
+  )
+}
+
+// ───────────── Análisis para decidir ─────────────
+function Analisis() {
+  const { regiones, tiendas, turnos, ausencias, horasExtras, coberturas, licencias, suplentes, idx, maps, config, empleados } = useApp()
+  const desde = addDays(HOY, -27)
+  const sem = range(addDays(HOY, 1), addDays(HOY, 7))
+  const panorama = regiones.map((r) => {
+    const ts = tiendas.filter((t) => t.regionId === r.id)
+    const huecos = ts.reduce((s, t) => s + sem.reduce((a, d) => a + huecosDia(idx, t, d), 0), 0)
+    const bolsa = suplentes.filter((x) => x.regionId === r.id)
+    const libres = bolsa.reduce((s, x) => s + sem.reduce((a, d) => a + x.disponibilidad[DIAS_KEY[dow(d)]].filter((f) => !(idx.porSuplente.get(x.id) || []).some((row) => row.fecha === d)).length, 0), 0)
+    return { r, huecos, bolsa: bolsa.length, libres, licFut: licencias.filter((l) => l.regionId === r.id && l.estado !== 'rechazada' && l.hasta >= HOY && l.desde <= addDays(HOY, 30)).reduce((s, l) => s + l.dias, 0) }
+  })
+  const porTipo = Object.entries(TIPOS_AUSENCIA).map(([k, v]) => ({ etiqueta: v, valor: ausencias.filter((a) => a.tipo === k && a.desde >= desde && a.desde <= HOY).length })).filter((x) => x.valor > 0).sort((a, b) => b.valor - a.valor)
+  const porCausa = Object.entries(CAUSA_HE).map(([k, v]) => ({ etiqueta: v, valor: horasExtras.filter((h) => h.causa === k && h.fecha >= desde && h.estado !== 'rechazada').reduce((s, h) => s + h.horas, 0) })).filter((x) => x.valor > 0).sort((a, b) => b.valor - a.valor)
+  const porTipoSup = Object.entries(TIPO_SUPLENTE).map(([k, v]) => { const cs = coberturas.filter((c) => c.estado === 'aceptada' && c.suplenteId && maps.sup[c.suplenteId].tipo === k); return { k, v, n: cs.length, costo: cs.reduce((s, c) => s + c.pagoEstimado, 0) } })
+  const prest = coberturas.filter((c) => c.estado === 'aceptada' && c.empleadoId)
+  const reinc = empleados.filter((e) => e.tiendaId).map((e) => { const l = ausencias.filter((a) => a.empleadoId === e.id && a.tipo !== 'licencia' && a.desde >= addDays(HOY, -56)); return { e, n: l.length, lunes: l.filter((a) => dow(a.desde) === 0).length, sinAviso: l.filter((a) => a.tipo === 'falta_sin_aviso').length } }).filter((x) => x.n >= 3).sort((a, b) => b.n - a.n)
+  const totalHE = porCausa.reduce((s, x) => s + x.valor, 0)
+  void turnos; void config
+  return (
+    <div className="space-y-6">
+      <Titulo sub="Lo que necesitás mirar para decidir refuerzos, contrataciones y presupuesto">Análisis para decidir</Titulo>
+      <Card className="overflow-x-auto">
+        <div className="p-5 pb-2"><h2 className="font-bold">Próximos 7 días: huecos vs. capacidad de la bolsa</h2><p className="text-sm text-slate-500">Si los huecos superan la disponibilidad de suplentes, hay que reforzar la bolsa o autorizar horas extras. Incluye las licencias ya pedidas para los próximos 30 días.</p></div>
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="p-3">Región</th><th className="p-3 text-right">Huecos (7 días)</th><th className="p-3 text-right">Suplentes en la bolsa</th><th className="p-3 text-right">Franjas libres de suplentes</th><th className="p-3 text-right">Días de licencia (30 d)</th><th className="p-3">Lectura</th></tr></thead>
+          <tbody className="divide-y divide-slate-100">{panorama.map((p) => (
+            <tr key={p.r.id}><td className="p-3 font-semibold">{p.r.nombre}</td><td className="p-3 text-right tabular-nums">{p.huecos}</td><td className="p-3 text-right tabular-nums">{p.bolsa}</td><td className="p-3 text-right tabular-nums">{p.libres}</td><td className="p-3 text-right tabular-nums">{p.licFut}</td>
+              <td className="p-3">{p.huecos === 0 ? <Badge tono="ok">Sin huecos</Badge> : p.libres >= p.huecos * 2 ? <Badge tono="ok">Bolsa alcanza</Badge> : <Badge tono="bad">Bolsa justa</Badge>}</td></tr>))}</tbody>
+        </table>
+      </Card>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="p-5"><h2 className="font-bold">Ausencias por motivo</h2><p className="mb-3 text-sm text-slate-500">Últimas 4 semanas, todo el país</p><BarrasH datos={porTipo} formato={(v) => `${v}`} /></Card>
+        <Card className="p-5"><h2 className="font-bold">Horas extras por causa</h2><p className="mb-3 text-sm text-slate-500">Últimas 4 semanas · {num(totalHE)} h en total. Las de “ausencia sin cubrir” se evitan con más suplentes; las de “pico de demanda” piden refuerzo de dotación.</p><BarrasH datos={porCausa} formato={(v) => `${v} h`} /></Card>
+      </div>
+      <Card className="p-5">
+        <h2 className="font-bold">Cómo se cubre: costo por tipo de suplente</h2>
+        <p className="mb-3 text-sm text-slate-500">Para decidir si conviene ampliar la bolsa propia o seguir recurriendo a externos y a personal de otras tiendas.</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {porTipoSup.map((t) => <div key={t.k} className="rounded-xl bg-slate-50 p-3"><div className="text-xs font-bold uppercase text-slate-500">{t.v}</div><div className="text-xl font-bold">{t.n} coberturas</div><div className="text-sm text-slate-600">{pesos(t.costo)} · {t.n ? pesos(t.costo / t.n) : '—'} c/u</div></div>)}
+          <div className="rounded-xl bg-slate-50 p-3"><div className="text-xs font-bold uppercase text-slate-500">Préstamos entre tiendas</div><div className="text-xl font-bold">{prest.length} coberturas</div><div className="text-sm text-slate-600">{pesos(prest.reduce((s, c) => s + c.pagoEstimado, 0))}</div></div>
+        </div>
+      </Card>
+      <Card className="overflow-x-auto">
+        <div className="p-5 pb-2"><h2 className="font-bold">Personas con ausencias reiteradas</h2><p className="text-sm text-slate-500">3 o más ausencias en las últimas 8 semanas. El seguimiento lo hace la coordinadora; acá ves dónde se repite.</p></div>
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="p-3">Persona</th><th className="p-3">Tienda</th><th className="p-3 text-right">Ausencias</th><th className="p-3 text-right">Lunes</th><th className="p-3 text-right">Sin aviso</th><th className="p-3">Responsable</th></tr></thead>
+          <tbody className="divide-y divide-slate-100">{reinc.map((x) => <tr key={x.e.id}><td className="p-3"><Link className="font-semibold text-brand-700" to={`/equipo/${x.e.id}`}>{x.e.nombre}</Link></td><td className="p-3">{maps.tienda[x.e.tiendaId].nombre.replace('Pagnifique ', '')}</td><td className="p-3 text-right"><Badge tono="bad">{x.n}</Badge></td><td className="p-3 text-right">{x.lunes}</td><td className="p-3 text-right">{x.sinAviso}</td><td className="p-3 text-slate-600">{maps.emp[maps.region[x.e.regionId].coordinadoraId].nombre}</td></tr>)}
+            {reinc.length === 0 && <tr><td className="p-4 text-slate-500" colSpan={6}>Nadie supera el umbral.</td></tr>}</tbody>
+        </table>
+      </Card>
     </div>
   )
 }

@@ -28,7 +28,7 @@ src/components/        UI (badges, modales, gráficos), marco de teléfono, layo
 src/screens/           empleado/ suplente/ coordinadora/ supervisor/ shared/ (cobertura, reintegros, legajo, tienda)
 ```
 
-Datos: 1 supervisor, 5 coordinadoras, 30 tiendas (los 19 departamentos), 125 empleados, 25 suplentes, ~4.100 turnos (4 semanas anteriores, actual y 4 siguientes), 65 ausencias, 26 licencias, 57 ofertas de cobertura, 10 reintegros, ~160 registros de horas extras y 11 alertas.
+Datos: 1 supervisor, 5 coordinadoras, 30 tiendas (los 19 departamentos), 125 empleados (cargos: encargado/a, vendedor/a y repositor/a; no hay cajeros), 25 suplentes, ~4.100 turnos (4 semanas anteriores, actual y 4 siguientes), 65 ausencias, 26 licencias, 57 ofertas de cobertura, 10 reintegros, ~160 registros de horas extras y 11 alertas.
 
 ## Recorrido demo (escenario por escenario)
 
@@ -46,7 +46,7 @@ Datos: 1 supervisor, 5 coordinadoras, 30 tiendas (los 19 departamentos), 125 emp
    Ver como **Silvana Techera** (Coordinadora Litoral Norte) → Panel → alerta “Artigas sin cobertura” → “Asignar suplente”. No hay suplentes que cubran Artigas; se recomiendan “Cobertura entre tiendas” (personal en su franco de otras tiendas, con distancia y viáticos) y “Externos y bolsas de otras regiones” (Gerardo Duarte, de la bolsa Centro-Norte). “Solicitar” / “Enviar oferta” y simulá la respuesta.
 
 4. **Patrón de faltas los lunes**
-   Ver como **Alejandro Bentancor** (Supervisor) → “Alertas y aprobaciones” → “Patrón de faltas los lunes: Gastón Pintos” → “Ver legajo y registrar seguimiento”: gráfico por día de la semana (lunes resaltado), historial y “Registrar en el legajo” (conversación).
+   Ver como **Gabriela Píriz** (Coordinadora Litoral Sur) → Panel → alerta “Patrón de faltas los lunes: Gastón Pintos” (sin gestionar) → “Ver legajo y registrar seguimiento”: gráfico por día de la semana (lunes resaltado), historial y “Registrar en el legajo” (conversación). El **Supervisor** ve la misma alerta con la responsable (Gabriela) y en solo lectura; puede “Recordar a la coordinadora”.
 
 5. **Licencias: pendiente, aprobada y rechazada con motivo**
    Ver como **Camila Acosta** → “Licencias”: una pendiente (26–30/10), una aprobada (agosto) y una rechazada con motivo. “Solicitar” crea otra. Como **Lucía Ferreira** → Bandeja → Licencias: “Aprobar” (genera el hueco a cubrir y descuenta saldo) o “Rechazar” con motivo (le llega a la empleada). La licencia **sin goce** requiere a Supervisión: Alejandro la ve en su tablero.
@@ -55,13 +55,22 @@ Datos: 1 supervisor, 5 coordinadoras, 30 tiendas (los 19 departamentos), 125 emp
    Ver como **Mariana Olivera** (Coordinadora Este) → Reintegros → *Daniel Cardozo*: **certificado por vencer** (14/10). Probá “Registrar nuevo certificado”. *Rosana Núñez* (Litoral Norte, Silvana Techera, o ver como la propia Rosana → Legajo → Mi reintegro): **reintegrada con ajuste de tareas**. El Supervisor ve los 10 casos a nivel nacional.
 
 7. **Región con horas extras muy por encima del promedio**
-   Supervisor → Tablero: la región **Este** se destaca (≈ +100 % sobre el promedio). Alerta → “Ver comparativa de la región”. En Comparativas: barras por región y ranking de tiendas.
+   Supervisor → Tablero: la región **Este** se destaca (≈ +100 % sobre el promedio) y su coordinadora, Mariana Olivera, ya **elevó** el tema pidiendo refuerzo de dotación. Es el único tema “Elevados a vos”: “Ver comparativa de la región”, “Tomar decisión” (queda registrada) o “Devolver a la coordinadora”. Más datos en Comparativas y en “Análisis para decidir”.
 
 8. **Suplente gestiona su disponibilidad y acepta una oferta**
    Ver como **Valentina Techera** → “Disponibilidad”: tocá las celdas (se guarda al instante y cambia las sugerencias de la coordinadora) → “Ofertas” → “Aceptar” / “Rechazar” (con motivo) → “Coberturas” y “Mis horas”.
 
 9. **Una tienda en cada departamento con algún dato relevante**
    Supervisor → “Mapa de Uruguay”: los 19 departamentos con semáforo (cambia el criterio: cobertura hoy / ausentismo / horas extras). Cada tienda tiene un dato relevante y movimientos (ausencias, horas extras, alertas). Tocá un departamento → tienda → detalle del día.
+
+## Rol del Supervisor general: quién resuelve cada tema
+
+- Los avisos y alertas **los resuelven las coordinadoras regionales**; el Supervisor los ve pero en **solo lectura**, salvo que la coordinadora los **eleve**.
+- Cada alerta muestra **quién es la responsable de resolverla** y su estado: *Sin gestionar* (con antigüedad), *En gestión de …* o *Elevada a Supervisión*. Una coordinadora toma el tema con “Me hago cargo” (o automáticamente al enviar una oferta de cobertura) y lo eleva con “Elevar a Supervisión” explicando qué necesita. Desde ese momento el responsable es el Supervisor hasta que decide o lo devuelve con una indicación.
+- Los reintegros y las coberturas siguen la misma regla (el Supervisor ve quién es la responsable y no puede operar salvo que esté elevado).
+- El Supervisor sí aprueba directamente las licencias que según la configuración le corresponden (p. ej. sin goce y maternidad).
+- **Tablero → Gestión por región**: pendientes en bandeja, antigüedad de lo más viejo, tiempo medio de validación, alertas sin gestionar / en gestión / elevadas y huecos de hoy, por coordinadora.
+- **Análisis para decidir**: huecos de los próximos 7 días contra la capacidad de la bolsa de suplentes, licencias ya pedidas, ausencias por motivo, horas extras por causa, costo por tipo de suplente y personas con ausencias reiteradas.
 
 Extras: Planificador (Coordinadora → “Planificador”: asigná en un hueco rojo a alguien con 40 h y verás la alerta de horas extras sobre el tope de 44 h), cambios de turno (Empleado → Turnos → “Cambio”; la Coordinadora aprueba en Bandeja), Reportes con exportación CSV y Configuración (tipos de licencia, reglas, plazos, tarifas: afectan toda la demo).
 

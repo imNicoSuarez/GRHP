@@ -102,7 +102,7 @@ export function AppProvider({ inicial, children }) {
         const url = `/bandeja`
         notificar(d, usuarioDeCoord(emp.regionId), `${emp.nombre} avisó que falta`, `${comprobante ? 'Adjuntó comprobante' : 'Sin comprobante todavía'}. ${filas.length} turno(s) sin cubrir.`, url)
         if (filas.some((f) => f.fecha <= addDays(HOY, 2))) {
-          d.alertas.unshift({ id: nextId(d.alertas, 'AL', 2), creadaEn: ahoraSim(), resuelta: false, tipo: 'sin_cobertura', severidad: 'alta', regionId: emp.regionId, tiendaId: emp.tiendaId, ausenciaId: id, titulo: `${maps.tienda[emp.tiendaId].nombre} sin cobertura`, detalle: `${emp.nombre} avisó que falta. El turno quedó sin cubrir.` })
+          d.alertas.unshift({ id: nextId(d.alertas, 'AL', 2), creadaEn: ahoraSim(), resuelta: false, tipo: 'sin_cobertura', severidad: 'alta', regionId: emp.regionId, tiendaId: emp.tiendaId, ausenciaId: id, responsable: { rol: 'coordinadora', empleadoId: maps.region[emp.regionId].coordinadoraId }, gestion: { estado: 'sin_gestionar' }, titulo: `${maps.tienda[emp.tiendaId].nombre} sin cobertura`, detalle: `${emp.nombre} avisó que falta. El turno quedó sin cubrir.` })
         }
       })
       avisar('Ausencia avisada. Tu coordinadora ya fue notificada')
@@ -153,6 +153,7 @@ export function AppProvider({ inicial, children }) {
           turnoIds: filas.map((f) => f.id), fechaDesde: filas[0].fecha, fechaHasta: filas.at(-1).fecha, franja: filas.every((f) => f.franja === filas[0].franja) ? filas[0].franja : 'MT',
           estado: 'pendiente', enviadaEn: ahoraSim(), respondidaEn: null, tiempoRespuestaMin: null, distanciaKm, pagoEstimado, motivoRechazo: null,
         })
+        d.alertas.forEach((al) => { if (al.ausenciaId === ausenciaId && al.gestion?.estado === 'sin_gestionar' && usuario.rol === 'coordinadora') al.gestion = { estado: 'en_gestion', porId: usuario.empleadoId, desde: ahoraSim(), nota: 'Ofertas de cobertura enviadas.' } })
         if (suplenteId) notificar(d, data.usuarios.find((u) => u.suplenteId === suplenteId)?.id, 'Nueva oferta de cobertura', `${tienda.nombre} · ${filas.length} turno(s). Respondé lo antes posible.`, '/ofertas')
       })
       avisar('Oferta enviada')
@@ -289,7 +290,47 @@ export function AppProvider({ inicial, children }) {
 
     // Legajo / alertas / notificaciones / configuración
     A.nota = (empleadoId, texto, tipo = 'seguimiento') => { mutar((d) => { d.notasLegajo.unshift({ id: 'NL' + Date.now(), empleadoId, fecha: ahoraSim(), autor: usuario.nombre, texto, tipo }) }); avisar('Registrado en el legajo') }
-    A.resolverAlerta = (id) => { mutar((d) => { d.alertas.find((a) => a.id === id).resuelta = true }); avisar('Alerta marcada como atendida') }
+    A.resolverAlerta = (id, nota) => { mutar((d) => { const a = d.alertas.find((x) => x.id === id); a.resuelta = true; a.resueltaPor = usuario.empleadoId; a.resueltaEn = ahoraSim(); a.decision = nota || null }); avisar('Alerta marcada como atendida') }
+    // Gestión de alertas: la responsable es la coordinadora de la región; solo pasa a Supervisión si ella la eleva.
+    A.tomarAlerta = (id) => { mutar((d) => { const a = d.alertas.find((x) => x.id === id); a.gestion = { estado: 'en_gestion', porId: usuario.empleadoId, desde: ahoraSim(), nota: a.gestion?.nota || null } }); avisar('Te hiciste cargo de la alerta') }
+    A.elevarAlerta = (id, motivo) => {
+      mutar((d) => {
+        const a = d.alertas.find((x) => x.id === id)
+        a.responsable = { rol: 'supervisor', empleadoId: 'E001' }
+        a.gestion = { estado: 'elevada', porId: usuario.empleadoId, desde: ahoraSim(), nota: motivo }
+        notificar(d, 'U-SUP', 'Una coordinadora elevó un tema', `${usuario.nombre}: ${a.titulo}`, '/alertas')
+      })
+      avisar('Elevado a Supervisión general. Queda como responsable hasta que decida')
+    }
+    A.devolverAlerta = (id, nota) => {
+      mutar((d) => {
+        const a = d.alertas.find((x) => x.id === id)
+        const cid = maps.region[a.regionId].coordinadoraId
+        const eleva = a.gestion?.porId
+        a.responsable = { rol: 'coordinadora', empleadoId: cid }
+        a.gestion = { estado: 'en_gestion', porId: cid, desde: ahoraSim(), nota: `Supervisión: ${nota}` }
+        notificar(d, usuarioDeCoord(a.regionId), 'Supervisión te devolvió un tema', `${a.titulo}: ${nota}`, '/')
+        void eleva
+      })
+      avisar('Devuelto a la coordinadora con tu indicación')
+    }
+    A.recordarAlerta = (id) => {
+      mutar((d) => {
+        const a = d.alertas.find((x) => x.id === id)
+        a.recordadaEn = ahoraSim()
+        notificar(d, usuarioDeCoord(a.regionId), 'Recordatorio de Supervisión', `Sigue sin gestionar: ${a.titulo}`, '/')
+      })
+      avisar('Recordatorio enviado a la coordinadora')
+    }
+    A.elevarReintegro = (reId, motivo) => {
+      mutar((d) => {
+        const r = d.reintegros.find((x) => x.id === reId)
+        const emp = d.empleados.find((e) => e.id === r.empleadoId)
+        d.alertas.unshift({ id: nextId(d.alertas, 'AL', 2), creadaEn: ahoraSim(), resuelta: false, tipo: 'elevacion', severidad: 'media', regionId: r.regionId, tiendaId: r.tiendaId, empleadoId: r.empleadoId, reintegroId: reId, titulo: `Reintegro elevado: ${emp.nombre}`, detalle: motivo, responsable: { rol: 'supervisor', empleadoId: 'E001' }, gestion: { estado: 'elevada', porId: usuario.empleadoId, desde: ahoraSim(), nota: motivo } })
+        notificar(d, 'U-SUP', 'Una coordinadora elevó un reintegro', `${emp.nombre}: ${motivo}`, '/alertas')
+      })
+      avisar('Caso elevado a Supervisión general')
+    }
     A.leerNotificaciones = (uid) => mutar((d) => { d.notificaciones.forEach((n) => { if (n.usuarioId === uid) n.leida = true }) })
     A.setConfig = (fn) => mutar((d) => { fn(d.config) })
     return A

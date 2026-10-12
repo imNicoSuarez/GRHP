@@ -3,28 +3,88 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Avatar, Badge, Barra, Campo, Card, Estado, Icon, Modal, Semaforo, Stat, Tabs, Titulo, Vacio, cx } from '../../components/ui.jsx'
 import { useApp } from '../../lib/store.jsx'
-import { HOY, addDays, diffDays, dow, fmt, fmtDia, fmtFechaHora, hace, range, DIAS_CORTO } from '../../lib/dates.js'
+import { HOY, AHORA, minDiff, addDays, diffDays, dow, fmt, fmtDia, fmtFechaHora, hace, range, DIAS_CORTO } from '../../lib/dates.js'
 import { ESTADO_AUSENCIA, ESTADO_OFERTA, ESTADO_REINTEGRO, TIPOS_AUSENCIA, TIPO_SUPLENTE, SEVERIDAD, pesos } from '../../lib/labels.js'
 import { accionAlerta, alertaActiva, coberturaAusencia, semaforoTienda, slot, sugerirCobertura } from '../../lib/selectors.js'
 
 export const nombreCobertor = (row, maps) => (row.suplenteId ? maps.sup[row.suplenteId]?.nombre : maps.emp[row.empleadoId]?.nombre) || '—'
 
-// ───────────── Alertas ─────────────
+// ───────────── Alertas y responsables ─────────────
+const ROL_ETIQ = { coordinadora: 'Coordinadora regional', supervisor: 'Supervisor general' }
+export function EstadoGestion({ a }) {
+  const { maps } = useApp()
+  const g = a.gestion || { estado: 'sin_gestionar' }
+  const quien = g.porId ? maps.emp[g.porId]?.nombre : null
+  if (g.estado === 'elevada') return <Badge tono="info">Elevada a Supervisión{quien ? ` por ${quien.split(' ')[0]}` : ''}</Badge>
+  if (g.estado === 'en_gestion') return <Badge tono="ok">En gestión{quien ? ` de ${quien.split(' ')[0]}` : ''}</Badge>
+  const min = minDiff(a.creadaEn, AHORA)
+  return <Badge tono="warn">Sin gestionar · {min < 10 ? 'recién llegada' : min < 60 ? `hace ${min} min` : min < 1440 ? `hace ${Math.floor(min / 60)} h` : `hace ${Math.floor(min / 1440)} d`}</Badge>
+}
+export function Responsable({ a }) {
+  const { maps } = useApp()
+  const r = maps.emp[a.responsable?.empleadoId]
+  return <span className="text-xs text-slate-600">Responsable de resolverlo: <b className="text-slate-800">{r ? r.nombre : '—'}</b> ({ROL_ETIQ[a.responsable?.rol] || 'Coordinadora regional'})</span>
+}
+
+// Botones de la decisión de Supervisión sobre un tema elevado
+export function AccionesElevada({ a }) {
+  const { acciones } = useApp()
+  const [modal, setModal] = useState(null)
+  const [txt, setTxt] = useState('')
+  const cerrar = () => { setModal(null); setTxt('') }
+  return (
+    <>
+      <button className="btn-ok btn-sm" onClick={() => setModal('decidir')}>Tomar decisión</button>
+      <button className="btn-secondary btn-sm" onClick={() => setModal('devolver')}>Devolver a la coordinadora</button>
+      <Modal abierto={modal === 'decidir'} onCerrar={cerrar} titulo="Tu decisión">
+        <div className="space-y-3"><p className="text-sm text-slate-600">{a.gestion?.nota}</p><Campo label="Decisión (queda registrada)"><textarea className="input" rows={3} value={txt} onChange={(e) => setTxt(e.target.value)} placeholder="Ej: autorizado el refuerzo de 2 personas desde el 02/11" /></Campo><button disabled={!txt} className="btn-ok w-full" onClick={() => { acciones.resolverAlerta(a.id, txt); cerrar() }}>Registrar decisión y cerrar</button></div>
+      </Modal>
+      <Modal abierto={modal === 'devolver'} onCerrar={cerrar} titulo="Devolver a la coordinadora">
+        <div className="space-y-3"><Campo label="Indicación para ella"><textarea className="input" rows={3} value={txt} onChange={(e) => setTxt(e.target.value)} placeholder="Qué tiene que resolver o qué le falta" /></Campo><button disabled={!txt} className="btn-primary w-full" onClick={() => { acciones.devolverAlerta(a.id, txt); cerrar() }}>Devolver</button></div>
+      </Modal>
+    </>
+  )
+}
+
+export function BotonElevar({ onElevar, etiqueta = 'Elevar a Supervisión' }) {
+  const [abierto, setAbierto] = useState(false)
+  const [txt, setTxt] = useState('')
+  return (
+    <>
+      <button className="btn-secondary btn-sm" onClick={() => setAbierto(true)}>{etiqueta}</button>
+      <Modal abierto={abierto} onCerrar={() => setAbierto(false)} titulo="Elevar a Supervisión general">
+        <div className="space-y-3"><p className="text-sm text-slate-600">Desde que lo elevás, Supervisión pasa a ser la responsable de resolverlo. Explicá qué necesitás que decida.</p><Campo label="Qué necesitás"><textarea className="input" rows={3} value={txt} onChange={(e) => setTxt(e.target.value)} /></Campo><button disabled={!txt} className="btn-primary w-full" onClick={() => { onElevar(txt); setAbierto(false); setTxt('') }}>Elevar</button></div>
+      </Modal>
+    </>
+  )
+}
+
 export function AlertaItem({ a, rol, compacta }) {
   const { acciones } = useApp()
   const nav = useNavigate()
   const ac = accionAlerta(a, rol)
   const [, tono] = SEVERIDAD[a.severidad]
+  const g = a.gestion || { estado: 'sin_gestionar' }
+  const elevada = g.estado === 'elevada'
+  const esSup = rol === 'supervisor'
   return (
     <li className={cx('rounded-2xl bg-white p-4 ring-1 ring-slate-200 border-l-4', a.severidad === 'alta' ? 'border-l-red-500' : a.severidad === 'media' ? 'border-l-amber-500' : 'border-l-sky-500')}>
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 space-y-1">
           <div className="flex flex-wrap items-center gap-2"><Badge tono={tono}>{SEVERIDAD[a.severidad][0]}</Badge><b className="text-sm">{a.titulo}</b></div>
-          {!compacta && <p className="mt-1 text-sm text-slate-600">{a.detalle}</p>}
+          {!compacta && <p className="text-sm text-slate-600">{a.detalle}</p>}
+          <div className="flex flex-wrap items-center gap-2"><EstadoGestion a={a} /><Responsable a={a} /></div>
+          {!compacta && g.nota && <p className="rounded-xl bg-slate-50 p-2 text-sm text-slate-700"><b>{elevada ? 'Motivo de la elevación: ' : 'Nota: '}</b>{g.nota}</p>}
+          {!compacta && a.recordadaEn && <p className="text-xs text-slate-500">Recordatorio enviado {hace(a.recordadaEn)}.</p>}
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => nav(ac.to)} className="btn-primary btn-sm">{ac.label} <Icon n="right" size={14} /></button>
-          {!compacta && a.tipo !== 'sin_cobertura' && <button onClick={() => acciones.resolverAlerta(a.id)} className="btn-secondary btn-sm">Marcar atendida</button>}
+        <div className="flex flex-wrap items-center gap-2">
+          {esSup && !elevada && <button onClick={() => nav(ac.to)} className="btn-secondary btn-sm">Ver detalle <Icon n="right" size={14} /></button>}
+          {(!esSup || elevada) && <button onClick={() => nav(ac.to)} className="btn-primary btn-sm">{ac.label} <Icon n="right" size={14} /></button>}
+          {!compacta && esSup && elevada && <AccionesElevada a={a} />}
+          {!compacta && esSup && g.estado === 'sin_gestionar' && <button onClick={() => acciones.recordarAlerta(a.id)} className="btn-secondary btn-sm">Recordar a la coordinadora</button>}
+          {!compacta && !esSup && g.estado === 'sin_gestionar' && <button onClick={() => acciones.tomarAlerta(a.id)} className="btn-secondary btn-sm">Me hago cargo</button>}
+          {!compacta && !esSup && !elevada && <BotonElevar onElevar={(m) => acciones.elevarAlerta(a.id, m)} />}
+          {!compacta && !esSup && !elevada && a.tipo !== 'sin_cobertura' && <button onClick={() => acciones.resolverAlerta(a.id)} className="btn-secondary btn-sm">Marcar atendida</button>}
         </div>
       </div>
     </li>
@@ -41,7 +101,7 @@ export function huecosAbiertos({ ausencias, idx, regionId }) {
 }
 
 export function CoberturaLista({ regionId }) {
-  const { ausencias, idx, maps, coberturas } = useApp()
+  const { ausencias, idx, maps, coberturas, alertas, usuario } = useApp()
   const lista = huecosAbiertos({ ausencias, idx, regionId })
   return (
     <div className="space-y-4">
@@ -52,12 +112,13 @@ export function CoberturaLista({ regionId }) {
           const ofertas = coberturas.filter((c) => c.ausenciaId === a.id)
           const pend = ofertas.filter((o) => o.estado === 'pendiente').length
           const primera = cob.sinCubrirFut[0]
+          const al = alertas.find((x) => x.ausenciaId === a.id && !x.resuelta)
           return (
             <li key={a.id}>
               <Link to={`/cobertura/${a.id}`} className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200 hover:ring-brand-600">
                 <span className={cx('flex h-11 w-11 items-center justify-center rounded-xl text-white', primera.fecha === HOY ? 'bg-red-600' : 'bg-amber-500')}><Icon n="alert" /></span>
-                <div className="min-w-0 flex-1"><div className="font-bold">{maps.tienda[a.tiendaId].nombre}</div><div className="text-sm text-slate-600">{maps.emp[a.empleadoId].nombre} · {TIPOS_AUSENCIA[a.tipo]} · {cob.sinCubrirFut.length} turno(s) sin cubrir desde {fmtDia(primera.fecha)}</div></div>
-                <div className="flex items-center gap-2">{pend > 0 && <Badge tono="warn">{pend} oferta(s) pendiente(s)</Badge>}{ofertas.length === 0 && <Badge tono="bad">Sin ofertas</Badge>}<span className="btn-primary btn-sm">Buscar cobertura</span></div>
+                <div className="min-w-0 flex-1"><div className="font-bold">{maps.tienda[a.tiendaId].nombre}</div><div className="text-sm text-slate-600">{maps.emp[a.empleadoId].nombre} · {TIPOS_AUSENCIA[a.tipo]} · {cob.sinCubrirFut.length} turno(s) sin cubrir desde {fmtDia(primera.fecha)}</div><div className="mt-1 flex flex-wrap items-center gap-2">{al ? <><EstadoGestion a={al} /><Responsable a={al} /></> : <Responsable a={{ responsable: { rol: 'coordinadora', empleadoId: maps.region[a.regionId].coordinadoraId } }} />}</div></div>
+                <div className="flex items-center gap-2">{pend > 0 && <Badge tono="warn">{pend} oferta(s) pendiente(s)</Badge>}{ofertas.length === 0 && <Badge tono="bad">Sin ofertas</Badge>}<span className="btn-primary btn-sm">{usuario.rol === 'supervisor' && al?.gestion?.estado !== 'elevada' ? 'Ver detalle' : 'Buscar cobertura'}</span></div>
               </Link>
             </li>
           )
@@ -70,7 +131,7 @@ export function CoberturaLista({ regionId }) {
 export function CoberturaPage() {
   const { id } = useParams()
   const app = useApp()
-  const { ausencias, maps, idx, suplentes, empleados, tiendas, coberturas, config, acciones, empresa, usuario } = app
+  const { ausencias, maps, idx, suplentes, empleados, tiendas, coberturas, config, acciones, empresa, usuario, alertas } = app
   const nav = useNavigate()
   const aus = ausencias.find((a) => a.id === id)
   if (!aus) return <Vacio>No encontramos esa ausencia. <Link className="font-semibold text-brand-700" to="/cobertura">Volver</Link></Vacio>
@@ -84,6 +145,10 @@ export function CoberturaPage() {
   const [verPrest, setVerPrest] = useState(false)
   const [verOtras, setVerOtras] = useState(false)
   const escalar = sug && !sug.hayEnZona
+  const alerta = alertas.find((x) => x.ausenciaId === aus.id && !x.resuelta)
+  const elevada = alerta?.gestion?.estado === 'elevada'
+  const puede = usuario.rol !== 'supervisor' || elevada
+  const resp = alerta ? maps.emp[alerta.responsable.empleadoId] : maps.emp[maps.region[aus.regionId].coordinadoraId]
   return (
     <div className="space-y-5">
       <button onClick={() => nav(-1)} className="flex items-center gap-1 text-sm font-semibold text-brand-700"><Icon n="left" size={16} /> Volver</button>
@@ -99,6 +164,17 @@ export function CoberturaPage() {
         </div>
       </Card>
 
+      {alerta ? (
+        <Card className={cx('space-y-2 border-l-4 p-4', elevada ? 'border-sky-500' : 'border-slate-300')}>
+          <div className="flex flex-wrap items-center gap-2"><EstadoGestion a={alerta} /><Responsable a={alerta} /></div>
+          {alerta.gestion?.nota && <p className="text-sm text-slate-700"><b>{elevada ? 'Motivo de la elevación: ' : 'Nota: '}</b>{alerta.gestion.nota}</p>}
+          {usuario.rol === 'supervisor' && !elevada && <p className="text-sm font-semibold text-slate-700">Solo lectura: la resuelve {resp.nombre}. Intervenís recién si ella lo eleva.</p>}
+          {usuario.rol === 'supervisor' && elevada && <div className="flex flex-wrap gap-2"><AccionesElevada a={alerta} /></div>}
+          {usuario.rol === 'coordinadora' && !elevada && <div className="flex flex-wrap gap-2">{alerta.gestion?.estado === 'sin_gestionar' && <button className="btn-secondary btn-sm" onClick={() => acciones.tomarAlerta(alerta.id)}>Me hago cargo</button>}<BotonElevar onElevar={(m) => acciones.elevarAlerta(alerta.id, m)} /></div>}
+          {usuario.rol === 'coordinadora' && elevada && <p className="text-sm text-slate-600">Esperando la decisión de Supervisión general. Mientras tanto podés seguir buscando cobertura.</p>}
+        </Card>
+      ) : usuario.rol === 'supervisor' && <Card className="border-l-4 border-slate-300 p-4 text-sm font-semibold text-slate-700">Solo lectura: la resuelve {resp.nombre} (coordinadora regional).</Card>}
+
       {!filas.length && <Card className="border-l-4 border-emerald-500 p-5"><b className="text-emerald-800">✓ Todos los turnos están cubiertos.</b><p className="text-sm text-slate-600">La alerta de “sin cobertura” se resolvió sola.</p></Card>}
 
       {ofertas.length > 0 && (
@@ -110,7 +186,7 @@ export function CoberturaPage() {
                 <div className="min-w-0 flex-1"><b>{nombreOferta(o)}</b> <span className="text-slate-500">· {o.tipoOferta === 'prestamo' ? 'de otra tienda' : TIPO_SUPLENTE[maps.sup[o.suplenteId].tipo].toLowerCase()} · {o.distanciaKm} km · {pesos(o.pagoEstimado)}</span>
                   <div className="text-xs text-slate-500">Enviada {fmtFechaHora(o.enviadaEn)}{o.tiempoRespuestaMin ? ` · respondió en ${o.tiempoRespuestaMin} min` : ''}{o.motivoRechazo ? ` · “${o.motivoRechazo}”` : ''}</div></div>
                 <Estado mapa={ESTADO_OFERTA} valor={o.estado} />
-                {o.estado === 'pendiente' && (
+                {o.estado === 'pendiente' && puede && (
                   <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1" title="Solo para la demo: simula la respuesta de la persona">
                     <span className="px-1 text-[10px] font-bold uppercase text-slate-500">Demo</span>
                     <button className="btn-ok btn-sm" onClick={() => acciones.responderOferta(o.id, 'aceptada')}>Aceptó</button>
@@ -131,7 +207,7 @@ export function CoberturaPage() {
             {sug.zona.length === 0 && <Card className="border-l-4 border-red-500 p-4 text-sm"><b>No hay suplentes que cubran {tienda.departamento}.</b> Ninguna persona de tu bolsa tiene esta zona. Escalá a otra tienda o a un externo.</Card>}
             {sug.zona.length > 0 && !sug.hayEnZona && <Card className="mb-2 border-l-4 border-red-500 p-4 text-sm"><b>Nadie de tu bolsa está disponible</b> en ese horario. Probá con otras tiendas o externos.</Card>}
             <ul className="grid gap-3 md:grid-cols-2">
-              {sug.zona.map((z) => <SugCard key={z.suplente.id} z={z} filas={filas} onEnviar={() => acciones.enviarOferta({ ausenciaId: aus.id, suplenteId: z.suplente.id, pagoEstimado: z.pago, distanciaKm: z.km })} />)}
+              {sug.zona.map((z) => <SugCard key={z.suplente.id} z={z} filas={filas} soloLectura={!puede} onEnviar={() => acciones.enviarOferta({ ausenciaId: aus.id, suplenteId: z.suplente.id, pagoEstimado: z.pago, distanciaKm: z.km })} />)}
             </ul>
           </section>
 
@@ -147,7 +223,7 @@ export function CoberturaPage() {
                   <li key={p.empleado.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-slate-200">
                     <Avatar nombre={p.empleado.nombre} color={p.empleado.avatarColor} />
                     <div className="min-w-0 flex-1 text-sm"><div className="truncate font-bold">{p.empleado.nombre}</div><div className="text-slate-600">{p.tienda.nombre} · {p.km} km{p.misma ? '' : ' · otra región'}</div><div className="text-xs text-slate-500">En su franco → hora extra · {pesos(p.pago)} (incl. viáticos)</div></div>
-                    {p.oferta ? <Estado mapa={ESTADO_OFERTA} valor={p.oferta.estado} /> : <button className="btn-primary btn-sm" onClick={() => acciones.enviarOferta({ ausenciaId: aus.id, empleadoId: p.empleado.id, pagoEstimado: p.pago, distanciaKm: p.km })}>Solicitar</button>}
+                    {p.oferta ? <Estado mapa={ESTADO_OFERTA} valor={p.oferta.estado} /> : <button disabled={!puede} className="btn-primary btn-sm" onClick={() => acciones.enviarOferta({ ausenciaId: aus.id, empleadoId: p.empleado.id, pagoEstimado: p.pago, distanciaKm: p.km })}>Solicitar</button>}
                   </li>
                 ))}
               </ul>
@@ -162,18 +238,18 @@ export function CoberturaPage() {
             {(verOtras || escalar) && (
               <ul className="mt-2 grid gap-3 md:grid-cols-2">
                 {sug.otrasRegiones.length === 0 && <Vacio>No hay externos registrados para esta zona.</Vacio>}
-                {sug.otrasRegiones.map((z) => <SugCard key={z.suplente.id} z={z} filas={filas} region={maps.region[z.suplente.regionId].nombre} onEnviar={() => acciones.enviarOferta({ ausenciaId: aus.id, suplenteId: z.suplente.id, pagoEstimado: z.pago, distanciaKm: z.km })} />)}
+                {sug.otrasRegiones.map((z) => <SugCard key={z.suplente.id} z={z} filas={filas} soloLectura={!puede} region={maps.region[z.suplente.regionId].nombre} onEnviar={() => acciones.enviarOferta({ ausenciaId: aus.id, suplenteId: z.suplente.id, pagoEstimado: z.pago, distanciaKm: z.km })} />)}
               </ul>
             )}
           </section>
         </>
       )}
-      <p className="text-xs text-slate-500">Actúa como {usuario.nombre}. Las respuestas de las personas se simulan con los botones “Demo” o entrando como suplente desde “Ver como…”.</p>
+      <p className="text-xs text-slate-500">Ves esta pantalla como {usuario.nombre}. Las respuestas de las personas se simulan con los botones “Demo” o entrando como suplente desde “Ver como…”.</p>
     </div>
   )
 }
 
-function SugCard({ z, filas, onEnviar, region }) {
+function SugCard({ z, filas, onEnviar, region, soloLectura }) {
   const s = z.suplente
   return (
     <li className={cx('flex flex-col gap-3 rounded-2xl bg-white p-4 ring-1', z.elegible ? 'ring-slate-200' : 'opacity-80 ring-slate-200')}>
@@ -184,7 +260,7 @@ function SugCard({ z, filas, onEnviar, region }) {
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-700"><span className="inline-flex items-center gap-1"><Icon n="pin" size={14} /> {z.km} km desde {s.base.ciudad}</span><span className="inline-flex items-center gap-1"><Icon n="money" size={14} /> {pesos(z.pago)}</span><span>{s.habilitaciones.join(' · ')}</span></div>
       {z.razones.length > 0 && <ul className="text-xs text-amber-800">{z.razones.map((r) => <li key={r}>! {r}</li>)}</ul>}
-      <button disabled={!z.elegible} onClick={onEnviar} className="btn-primary btn-sm self-start">{z.oferta ? 'Ya ofertada' : `Enviar oferta (${filas.length} turno${filas.length > 1 ? 's' : ''})`}</button>
+      <button disabled={!z.elegible || soloLectura} onClick={onEnviar} className="btn-primary btn-sm self-start">{z.oferta ? 'Ya ofertada' : `Enviar oferta (${filas.length} turno${filas.length > 1 ? 's' : ''})`}</button>
     </li>
   )
 }
@@ -228,8 +304,12 @@ export function ReintegrosPage({ regionId }) {
 }
 
 function ReintegroDetalle({ r }) {
-  const { maps, acciones, ausencias, usuario } = useApp()
+  const { maps, acciones, ausencias, usuario, alertas } = useApp()
   const e = maps.emp[r.empleadoId]
+  const elev = alertas.find((x) => x.reintegroId === r.id && x.gestion?.estado === 'elevada' && !x.resuelta)
+  const esSup = usuario.rol === 'supervisor'
+  const puede = !esSup || !!elev
+  const coordR = maps.emp[maps.region[r.regionId].coordinadoraId]
   const [nota, setNota] = useState('')
   const [tarea, setTarea] = useState({ texto: '', vence: addDays(HOY, 7) })
   const [modal, setModal] = useState(null)
@@ -244,6 +324,12 @@ function ReintegroDetalle({ r }) {
         <div className="flex items-center gap-3"><Avatar nombre={e.nombre} color={e.avatarColor} size={52} /><div><Link to={`/equipo/${e.id}`} className="text-lg font-bold text-brand-700">{e.nombre}</Link><div className="text-sm text-slate-600">{e.cargo} · {maps.tienda[r.tiendaId].nombre}</div><div className="text-sm text-slate-600">{e.telefono}</div></div></div>
         <Estado mapa={ESTADO_REINTEGRO} valor={r.estado} />
       </div>
+      <div className="space-y-2 rounded-xl bg-slate-50 p-3 text-sm">
+        <div><span className="label !mb-0 mr-2 inline">Responsable</span><b>{coordR.nombre}</b> (coordinadora regional)</div>
+        {elev && <div><Badge tono="info">Elevado a Supervisión</Badge> <span className="text-slate-700">{elev.gestion.nota}</span></div>}
+        {esSup && !elev && <div className="font-semibold text-slate-700">Solo lectura: lo gestiona {coordR.nombre}. Intervenís recién si lo eleva.</div>}
+        <div className="flex flex-wrap gap-2">{esSup && elev && <AccionesElevada a={elev} />}{!esSup && !elev && <BotonElevar onElevar={(m) => acciones.elevarReintegro(r.id, m)} />}</div>
+      </div>
       <dl className="grid gap-3 text-sm sm:grid-cols-3">
         <div><dt className="label">Motivo</dt><dd className="font-semibold">{r.motivo}</dd></div>
         <div><dt className="label">Ausente desde</dt><dd className="font-semibold">{fmt(r.desde)}{aus && ` (${diffDays(r.desde, HOY)} días)`}</dd></div>
@@ -251,30 +337,30 @@ function ReintegroDetalle({ r }) {
         {r.certificado && <div className="sm:col-span-3"><dt className="label">Certificado vigente</dt><dd className={cx('font-semibold', !cerrado && dias <= 3 && 'text-red-700')}>{r.certificado.archivo} · hasta {fmt(r.certificado.vigenteHasta)} {!cerrado && dias >= 0 && `(en ${dias} día${dias !== 1 ? 's' : ''})`}</dd></div>}
       </dl>
       {r.ajusteTareas && <div className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900"><b>Ajuste de tareas:</b> {r.ajusteTareas}</div>}
-      {!cerrado && (
+      {!cerrado && puede && (
         <div className="flex flex-wrap gap-2">
           <button className="btn-secondary btn-sm" onClick={() => setModal('cert')}><Icon n="upload" size={14} /> Registrar nuevo certificado</button>
           {r.estado !== 'alta_proxima' && <button className="btn-secondary btn-sm" onClick={() => acciones.setReintegro(r.id, { estado: 'alta_proxima', altaPrevista: r.altaPrevista || addDays(HOY, 7) }, 'Marcado como alta próxima')}>Marcar alta próxima</button>}
           <button className="btn-ok btn-sm" onClick={() => setModal('alta')}><Icon n="check" size={14} /> Registrar reintegro</button>
         </div>
       )}
-      {cerrado && !r.ajusteTareas && <button className="btn-secondary btn-sm" onClick={() => setModal('ajuste')}>Agregar ajuste de tareas</button>}
+      {cerrado && puede && !r.ajusteTareas && <button className="btn-secondary btn-sm" onClick={() => setModal('ajuste')}>Agregar ajuste de tareas</button>}
       <section>
         <h3 className="mb-2 font-bold">Tareas de seguimiento</h3>
-        <ul className="space-y-1.5">{r.tareasPendientes.map((t) => <li key={t.id}><label className="flex cursor-pointer items-start gap-3 rounded-xl p-2 text-sm hover:bg-slate-50"><input type="checkbox" checked={t.hecho} onChange={() => acciones.toggleTarea(r.id, t.id)} className="mt-0.5 h-5 w-5 accent-brand-600" /><span className={t.hecho ? 'text-slate-400 line-through' : ''}>{t.texto}<span className={cx('ml-2 text-xs', !t.hecho && t.vence < HOY ? 'font-bold text-red-700' : 'text-slate-500')}>vence {fmt(t.vence)}</span></span></label></li>)}</ul>
-        <form className="mt-2 flex flex-wrap gap-2" onSubmit={(ev) => { ev.preventDefault(); if (tarea.texto) { acciones.agregarTarea(r.id, tarea.texto, tarea.vence); setTarea({ ...tarea, texto: '' }) } }}>
+        <ul className="space-y-1.5">{r.tareasPendientes.map((t) => <li key={t.id}><label className="flex cursor-pointer items-start gap-3 rounded-xl p-2 text-sm hover:bg-slate-50"><input type="checkbox" disabled={!puede} checked={t.hecho} onChange={() => acciones.toggleTarea(r.id, t.id)} className="mt-0.5 h-5 w-5 accent-brand-600" /><span className={t.hecho ? 'text-slate-400 line-through' : ''}>{t.texto}<span className={cx('ml-2 text-xs', !t.hecho && t.vence < HOY ? 'font-bold text-red-700' : 'text-slate-500')}>vence {fmt(t.vence)}</span></span></label></li>)}</ul>
+        {puede && <form className="mt-2 flex flex-wrap gap-2" onSubmit={(ev) => { ev.preventDefault(); if (tarea.texto) { acciones.agregarTarea(r.id, tarea.texto, tarea.vence); setTarea({ ...tarea, texto: '' }) } }}>
           <input className="input flex-1" placeholder="Nueva tarea…" value={tarea.texto} onChange={(e2) => setTarea({ ...tarea, texto: e2.target.value })} aria-label="Nueva tarea" />
           <input type="date" className="input w-40" value={tarea.vence} onChange={(e2) => setTarea({ ...tarea, vence: e2.target.value })} aria-label="Vence" />
           <button className="btn-secondary btn-sm">Agregar</button>
-        </form>
+        </form>}
       </section>
       <section>
         <h3 className="mb-2 font-bold">Notas del caso</h3>
         <ul className="space-y-2">{r.notas.map((n, i) => <li key={i} className="rounded-xl bg-slate-50 p-3 text-sm"><div className="text-xs text-slate-500">{fmt(n.fecha)} · {n.autor}</div>{n.texto}</li>)}</ul>
-        <form className="mt-2 flex gap-2" onSubmit={(ev) => { ev.preventDefault(); if (nota) { acciones.notaReintegro(r.id, nota); setNota('') } }}>
+        {puede && <form className="mt-2 flex gap-2" onSubmit={(ev) => { ev.preventDefault(); if (nota) { acciones.notaReintegro(r.id, nota); setNota('') } }}>
           <input className="input flex-1" placeholder={`Nota como ${usuario.nombre.split(' ')[0]}…`} value={nota} onChange={(e2) => setNota(e2.target.value)} aria-label="Nueva nota" />
           <button className="btn-secondary btn-sm">Guardar</button>
-        </form>
+        </form>}
       </section>
       <Modal abierto={modal === 'cert'} onCerrar={() => setModal(null)} titulo="Registrar nuevo certificado">
         <div className="space-y-3"><Campo label="Archivo"><input className="input" value={cert.archivo} onChange={(e2) => setCert({ ...cert, archivo: e2.target.value })} /></Campo><Campo label="Vigente hasta"><input type="date" className="input" value={cert.hasta} onChange={(e2) => setCert({ ...cert, hasta: e2.target.value })} /></Campo><button className="btn-primary w-full" onClick={() => { acciones.certificadoNuevo(r.id, cert.archivo, cert.hasta); setModal(null) }}>Guardar certificado</button></div>
@@ -364,10 +450,10 @@ export function LegajoPage() {
         </Card>
         <Card className="p-5">
           <h2 className="mb-2 font-bold">Seguimiento y conversaciones</h2>
-          <form onSubmit={(ev) => { ev.preventDefault(); if (txt) { acciones.nota(id, txt, 'conversacion'); setTxt('') } }} className="space-y-2">
+          {usuario.rol === 'supervisor' ? <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">El seguimiento de esta persona lo hace {maps.emp[maps.region[e.regionId].coordinadoraId].nombre}, coordinadora regional. Solo lectura.</p> : <form onSubmit={(ev) => { ev.preventDefault(); if (txt) { acciones.nota(id, txt, 'conversacion'); setTxt('') } }} className="space-y-2">
             <textarea className="input" rows={2} placeholder="Registrar conversación o acuerdo (queda en el legajo)…" aria-label="Nota de seguimiento" value={txt} onChange={(ev) => setTxt(ev.target.value)} />
             <div className="flex flex-wrap gap-2"><button className="btn-primary btn-sm">Registrar en el legajo</button>{lunes >= 3 && <button type="button" onClick={() => setTxt('Conversación por patrón de faltas los lunes. Se acuerda avisar con anticipación y revisar horarios.')} className="btn-secondary btn-sm">Usar texto sugerido</button>}</div>
-          </form>
+          </form>}
           <ul className="mt-3 space-y-2">{notas.map((n) => <li key={n.id} className="rounded-xl bg-slate-50 p-3 text-sm"><div className="text-xs text-slate-500">{fmtFechaHora(n.fecha)} · {n.autor}</div>{n.texto}</li>)}{notas.length === 0 && <li className="text-sm text-slate-500">Sin notas todavía.</li>}</ul>
         </Card>
       </div>
