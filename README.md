@@ -10,6 +10,8 @@ npm run dev        # http://localhost:5173
 # o: npm run build && npm run preview
 ```
 
+Publicación: el workflow `.github/workflows/pages.yml` compila y publica en GitHub Pages en cada push a `master` (en el repo: Settings → Pages → Source: *GitHub Actions*). Queda en `https://imnicosuarez.github.io/GRHP/`.
+
 - **Ver como…** (barra superior): cambia de usuario/rol sin login. Empleado y Suplente se ven dentro de un marco de teléfono; Coordinadora y Supervisor en layout web (la Coordinadora también es responsive para celular).
 - **Reiniciar datos demo**: vuelve todo al estado inicial (también limpia lo guardado en `sessionStorage`).
 - `npm run datos` regenera los JSON (generador determinístico en `scripts/generate-data.mjs`; ya vienen generados).
