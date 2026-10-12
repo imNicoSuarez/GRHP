@@ -15,15 +15,21 @@ export function EstadoGestion({ a }) {
   const { maps } = useApp()
   const g = a.gestion || { estado: 'sin_gestionar' }
   const quien = g.porId ? maps.emp[g.porId]?.nombre : null
-  if (g.estado === 'elevada') return <Badge tono="info">Elevada a Supervisión{quien ? ` por ${quien.split(' ')[0]}` : ''}</Badge>
-  if (g.estado === 'en_gestion') return <Badge tono="ok">En gestión{quien ? ` de ${quien.split(' ')[0]}` : ''}</Badge>
+  if (g.estado === 'elevada') return <Badge tono="info">Elevada a Supervisión{quien ? ` por ${quien}` : ''}</Badge>
+  if (g.estado === 'en_gestion') return <Badge tono="ok">En gestión{quien ? ` de ${quien}` : ''}</Badge>
   const min = minDiff(a.creadaEn, AHORA)
   return <Badge tono="warn">Sin gestionar · {min < 10 ? 'recién llegada' : min < 60 ? `hace ${min} min` : min < 1440 ? `hace ${Math.floor(min / 60)} h` : `hace ${Math.floor(min / 1440)} d`}</Badge>
 }
 export function Responsable({ a }) {
   const { maps } = useApp()
   const r = maps.emp[a.responsable?.empleadoId]
-  return <span className="text-xs text-slate-600">Responsable de resolverlo: <b className="text-slate-800">{r ? r.nombre : '—'}</b> ({ROL_ETIQ[a.responsable?.rol] || 'Coordinadora regional'})</span>
+  if (!r) return null
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 py-1 pl-1 pr-3 text-sm text-slate-700">
+      <Avatar nombre={r.nombre} color={r.avatarColor} size={24} />
+      <span>Lo resuelve: <b className="text-slate-900">{r.nombre}</b> <span className="text-slate-500">· {ROL_ETIQ[a.responsable?.rol] || 'Coordinadora regional'}</span></span>
+    </span>
+  )
 }
 
 // Botones de la decisión de Supervisión sobre un tema elevado
