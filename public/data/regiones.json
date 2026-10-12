@@ -1,0 +1,7 @@
+[
+  {"id":"met","nombre":"Metropolitana","color":"#2563eb","departamentos":["Montevideo","Canelones","San José"],"coordinadoraId":"E002"},
+  {"id":"este","nombre":"Este","color":"#0891b2","departamentos":["Maldonado","Rocha","Treinta y Tres","Cerro Largo","Lavalleja"],"coordinadoraId":"E003"},
+  {"id":"ls","nombre":"Litoral Sur","color":"#7c3aed","departamentos":["Colonia","Soriano","Río Negro","Flores"],"coordinadoraId":"E004"},
+  {"id":"ln","nombre":"Litoral Norte","color":"#c2410c","departamentos":["Paysandú","Salto","Artigas"],"coordinadoraId":"E005"},
+  {"id":"cn","nombre":"Centro-Norte","color":"#4d7c0f","departamentos":["Durazno","Florida","Tacuarembó","Rivera"],"coordinadoraId":"E006"}
+]

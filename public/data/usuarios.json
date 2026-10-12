@@ -1,0 +1,13 @@
+[
+  {"id":"U-SUP","rol":"supervisor","empleadoId":"E001","nombre":"Alejandro Bentancor","detalle":"Supervisor general · Casa matriz"},
+  {"id":"U-COORD-met","rol":"coordinadora","empleadoId":"E002","regionId":"met","nombre":"Lucía Ferreira","detalle":"Coordinadora · Metropolitana"},
+  {"id":"U-COORD-este","rol":"coordinadora","empleadoId":"E003","regionId":"este","nombre":"Mariana Olivera","detalle":"Coordinadora · Este"},
+  {"id":"U-COORD-ls","rol":"coordinadora","empleadoId":"E004","regionId":"ls","nombre":"Gabriela Píriz","detalle":"Coordinadora · Litoral Sur"},
+  {"id":"U-COORD-ln","rol":"coordinadora","empleadoId":"E005","regionId":"ln","nombre":"Silvana Techera","detalle":"Coordinadora · Litoral Norte"},
+  {"id":"U-COORD-cn","rol":"coordinadora","empleadoId":"E006","regionId":"cn","nombre":"Andrea Rodríguez","detalle":"Coordinadora · Centro-Norte"},
+  {"id":"U-EMP-1","rol":"empleado","empleadoId":"E014","nombre":"Camila Acosta","detalle":"Vendedora · Pocitos"},
+  {"id":"U-EMP-2","rol":"empleado","empleadoId":"E100","nombre":"Rosana Núñez","detalle":"Reintegrada con ajuste de tareas · Salto"},
+  {"id":"U-EMP-3","rol":"empleado","empleadoId":"E062","nombre":"Daniel Cardozo","detalle":"En licencia, certificado por vencer · Maldonado"},
+  {"id":"U-SUPL-1","rol":"suplente","suplenteId":"S01","nombre":"Valentina Techera","detalle":"Suplente · Metropolitana (tiene una oferta pendiente)"},
+  {"id":"U-SUPL-2","rol":"suplente","suplenteId":"S08","nombre":"Federico Sosa","detalle":"Suplente · Este"}
+]

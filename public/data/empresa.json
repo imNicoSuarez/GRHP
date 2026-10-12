@@ -1,0 +1,123 @@
+{
+  "nombre": "Pagnific",
+  "razonSocial": "Pagnific S.A.",
+  "casaMatriz": {
+    "ciudad": "Montevideo",
+    "direccion": "Av. Italia 3456",
+    "lat": -34.8856,
+    "lon": -56.1315
+  },
+  "moneda": "$U",
+  "hoyDemo": "2026-10-12",
+  "franjas": {
+    "M": {
+      "nombre": "Mañana",
+      "inicio": "09:00",
+      "fin": "17:00",
+      "horas": 8
+    },
+    "T": {
+      "nombre": "Tarde",
+      "inicio": "13:00",
+      "fin": "21:00",
+      "horas": 8
+    }
+  },
+  "config": {
+    "horasSemanalesTope": 44,
+    "valorHoraExtra": 520,
+    "recargoHoraExtra": 2,
+    "tarifaSuplenteHora": {
+      "propio_part_time": 250,
+      "de_otra_tienda": 270,
+      "externo": 330
+    },
+    "viaticoPorKm": 14,
+    "umbralViaticoKm": 50,
+    "plazosAviso": {
+      "enfermedad": "Hasta 1 h antes del turno",
+      "tramite_personal": "48 h de anticipación",
+      "estudio": "72 h de anticipación",
+      "duelo": "Lo antes posible",
+      "comprobanteHoras": 48
+    },
+    "tiposLicencia": [
+      {
+        "id": "anual",
+        "nombre": "Licencia anual",
+        "goce": true,
+        "comprobante": false,
+        "avisoDias": 30,
+        "aprobador": "coordinadora",
+        "diasMax": 20
+      },
+      {
+        "id": "medica",
+        "nombre": "Licencia médica",
+        "goce": true,
+        "comprobante": true,
+        "avisoDias": 0,
+        "aprobador": "coordinadora",
+        "diasMax": 180
+      },
+      {
+        "id": "maternidad",
+        "nombre": "Maternidad",
+        "goce": true,
+        "comprobante": true,
+        "avisoDias": 30,
+        "aprobador": "supervisor",
+        "diasMax": 98
+      },
+      {
+        "id": "paternidad",
+        "nombre": "Paternidad",
+        "goce": true,
+        "comprobante": true,
+        "avisoDias": 15,
+        "aprobador": "coordinadora",
+        "diasMax": 13
+      },
+      {
+        "id": "estudio",
+        "nombre": "Licencia por estudio",
+        "goce": true,
+        "comprobante": true,
+        "avisoDias": 15,
+        "aprobador": "coordinadora",
+        "diasMax": 20
+      },
+      {
+        "id": "sin_goce",
+        "nombre": "Licencia sin goce de sueldo",
+        "goce": false,
+        "comprobante": false,
+        "avisoDias": 30,
+        "aprobador": "supervisor",
+        "diasMax": 60
+      }
+    ],
+    "reglasAprobacion": [
+      {
+        "id": "r1",
+        "regla": "Licencias de hasta 5 días: aprueba la coordinadora regional",
+        "activa": true
+      },
+      {
+        "id": "r2",
+        "regla": "Licencias de más de 15 días o sin goce: requieren aprobación de Supervisión",
+        "activa": true
+      },
+      {
+        "id": "r3",
+        "regla": "No se aprueba si la tienda queda por debajo de la dotación mínima y no hay suplente",
+        "activa": true
+      },
+      {
+        "id": "r4",
+        "regla": "Horas extras sobre el tope semanal requieren autorización de la coordinadora",
+        "activa": true
+      }
+    ]
+  }
+}

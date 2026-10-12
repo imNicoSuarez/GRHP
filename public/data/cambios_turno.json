@@ -1,0 +1,8 @@
+[
+  {"id":"CM01","solicitanteId":"E014","companeroId":"E016","tiendaId":"T02","turnoId":"TU00380","turnoDestinoId":"TU00379","tipo":"con_companero","motivo":"Turno médico de mi hijo","estado":"aprobado","creadaEn":"2026-10-03T18:05:00","resueltaPor":"E002"},
+  {"id":"CM02","solicitanteId":"E016","companeroId":"E017","tiendaId":"T02","turnoId":"TU00379","turnoDestinoId":"TU00382","tipo":"con_companero","motivo":"Cita médica","estado":"pendiente_coordinadora","motivoRechazo":null,"creadaEn":"2026-10-11T12:48:00"},
+  {"id":"CM03","solicitanteId":"E044","companeroId":"E045","tiendaId":"T08","turnoId":"TU01459","turnoDestinoId":"TU01455","tipo":"con_companero","motivo":"Trámite en el banco","estado":"pendiente_coordinadora","motivoRechazo":null,"creadaEn":"2026-10-11T16:18:00"},
+  {"id":"CM04","solicitanteId":"E058","companeroId":"E059","tiendaId":"T11","turnoId":"TU01922","turnoDestinoId":"TU01924","tipo":"con_companero","motivo":"Cita médica","estado":"pendiente_coordinadora","motivoRechazo":null,"creadaEn":"2026-10-11T14:11:00"},
+  {"id":"CM05","solicitanteId":"E097","companeroId":"E098","tiendaId":"T22","turnoId":"TU03188","turnoDestinoId":"TU03187","tipo":"con_companero","motivo":"Trámite en el banco","estado":"pendiente_coordinadora","motivoRechazo":null,"creadaEn":"2026-10-11T15:06:00"},
+  {"id":"CM06","solicitanteId":"E120","companeroId":"E122","tiendaId":"T29","turnoId":"TU03942","turnoDestinoId":"TU03943","tipo":"con_companero","motivo":"Cumpleaños familiar","estado":"pendiente_coordinadora","motivoRechazo":null,"creadaEn":"2026-10-11T19:34:00"}
+]
